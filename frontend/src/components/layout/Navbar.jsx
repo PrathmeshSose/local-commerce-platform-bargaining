@@ -70,7 +70,7 @@ export const Navbar = () => {
             </div>
             <div>
               <span className="brand-title">Near<span className="text-accent">Deal</span></span>
-              <span className="brand-subtitle">Local & Smart Bargaining</span>
+              <span className="brand-subtitle">Furniture & Bargaining</span>
             </div>
           </Link>
 
@@ -109,7 +109,7 @@ export const Navbar = () => {
             </button>
             <input
               type="text"
-              placeholder="Search local spices, electronics, sweets, decor..."
+              placeholder="Search sofas, beds, wardrobes, dining sets..."
               className="search-input"
               aria-label="Search local marketplace"
               value={searchTerm}
@@ -188,6 +188,13 @@ export const Navbar = () => {
                     {currentRole === 'customer' && (
                       <>
                         <Link
+                          to="/products"
+                          className="dropdown-item flex items-center gap-2"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Search size={15} /> Browse Furniture
+                        </Link>
+                        <Link
                           to="/orders"
                           className="dropdown-item flex items-center gap-2"
                           onClick={() => setDropdownOpen(false)}
@@ -207,6 +214,13 @@ export const Navbar = () => {
                     {currentRole === 'seller' && (
                       <>
                         <Link
+                          to="/products"
+                          className="dropdown-item flex items-center gap-2"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Search size={15} /> Browse Furniture
+                        </Link>
+                        <Link
                           to="/seller"
                           className="dropdown-item flex items-center gap-2"
                           onClick={() => setDropdownOpen(false)}
@@ -224,13 +238,22 @@ export const Navbar = () => {
                     )}
 
                     {currentRole === 'admin' && (
-                      <Link
-                        to="/admin"
-                        className="dropdown-item flex items-center gap-2"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <ShieldCheck size={15} /> Admin Dashboard
-                      </Link>
+                      <>
+                        <Link
+                          to="/products"
+                          className="dropdown-item flex items-center gap-2"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Search size={15} /> Browse Furniture
+                        </Link>
+                        <Link
+                          to="/admin"
+                          className="dropdown-item flex items-center gap-2"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <ShieldCheck size={15} /> Admin Dashboard
+                        </Link>
+                      </>
                     )}
 
                     <div className="dropdown-divider" />

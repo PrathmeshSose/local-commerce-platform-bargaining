@@ -13,3 +13,56 @@
 .kpi-card:nth-child(2) { border-top-color: #10b981; }
 .kpi-card:nth-child(3) { border-top-color: var(--secondary); }
 .kpi-card:nth-child(4) { border-top-color: var(--bargain); }
+
+/* Header: store title + action button wrap instead of overflowing */
+.dashboard-header {
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: flex-start;
+}
+
+/* Single column while narrow: two columns left only ~300px for offer/product
+   rows and clipped the Accept/Decline/Counter button group. */
+@media (max-width: 900px) {
+  .seller-dashboard-sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dashboard-header > a {
+  align-self: center;
+}
+
+/* Narrow screens: offer & product rows stack content above action buttons */
+@media (max-width: 640px) {
+  .offer-summary-row,
+  .seller-product-row {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .offer-summary-row > div:first-child,
+  .seller-product-row > div:first-child {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .offer-summary-row > div:last-child,
+  .seller-product-row > div:last-child {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .seller-dashboard-page .dashboard-header h1 {
+    font-size: 1.25rem;
+  }
+  .offer-summary-row h5,
+  .seller-product-row h5 {
+    word-break: break-word;
+  }
+}

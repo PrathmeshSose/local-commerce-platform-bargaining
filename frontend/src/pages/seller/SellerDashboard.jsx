@@ -98,7 +98,7 @@ export const SellerDashboard = () => {
       <div className="dashboard-header flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Sharma Electronics & Gadgets</h1>
+            <h1 className="text-2xl font-bold">Sharma Furniture Gallery</h1>
             <Badge variant="success" size="sm">Verified Merchant</Badge>
           </div>
           <p className="text-sm text-muted">

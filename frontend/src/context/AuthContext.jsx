@@ -14,8 +14,8 @@ const MOCK_CREDENTIALS = {
   seller: {
     email: 'seller@neardeal.local',
     name: 'Rajesh Sharma',
-    storeName: 'Sharma Electronics & Gadgets',
-    sellerId: 'seller_2', // matches MOCK_SELLERS.seller_2 (Sharma Electronics & Gadgets)
+    storeName: 'Sharma Furniture Gallery',
+    sellerId: 'seller_2', // matches MOCK_SELLERS.seller_2 (Sharma Furniture Gallery)
     phone: '+91 98930 56789',
     city: 'Indore, MP'
   },

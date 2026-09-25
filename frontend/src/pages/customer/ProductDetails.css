@@ -314,8 +314,9 @@
   }
 }
 
-/* Phablet / small tablet: single column stacked */
-@media (max-width: 760px) {
+/* Phablet / small tablet: single column stacked (was 760 — 768px tablets
+   still clipped the Add to Cart row inside the narrow 46% info column) */
+@media (max-width: 860px) {
   .product-details-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -327,6 +328,17 @@
 
   .fulfillment-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .action-buttons-stack {
+    flex-wrap: wrap;
+  }
+
+  .add-cart-btn {
+    min-width: 0;
+    white-space: normal;
   }
 }
 

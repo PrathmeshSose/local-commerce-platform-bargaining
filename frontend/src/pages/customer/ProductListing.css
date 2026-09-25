@@ -8,9 +8,30 @@
 
 /* ------ Page wrapper ------ */
 .product-listing-page {
-  overflow-x: hidden;
   padding-bottom: 3rem;
   text-align: left;
+}
+
+/* ------ Collapsible filter toggle (tablet & mobile only) ------ */
+.mobile-filter-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.mobile-filter-toggle:hover {
+  border-color: var(--accent);
 }
 
 /* ------ Catalog header (title + description) ------ */
@@ -242,6 +263,15 @@
 
   .listing-sidebar {
     width: 100%;
+  }
+
+  /* Filters are hidden behind the toggle so products stay above the fold */
+  .mobile-filter-toggle {
+    display: flex;
+  }
+
+  .listing-sidebar:not(.filters-open) {
+    display: none;
   }
 
   .product-grid {

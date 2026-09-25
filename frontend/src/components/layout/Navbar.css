@@ -176,6 +176,10 @@
 .location-val {
   font-size: 0.775rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .radius-dropdown {
@@ -306,16 +310,35 @@
   justify-content: center;
 }
 
-/* Responsive Rules for Tablet & Mobile (1024px, 768px, 480px, 375px) */
+/* Responsive Rules for Tablet & Mobile (1024px, 840px, 680px, 480px) */
 @media (max-width: 1024px) {
   .nav-search-bar {
     max-width: 240px;
   }
 }
 
+/* Tablet portrait and below: search bar moves to its own full-width row
+   (it is never removed — search stays available everywhere). The location
+   text shrinks to the pin + radius selector so brand + actions fit one row. */
 @media (max-width: 840px) {
+  .navbar-main .container {
+    flex-wrap: wrap;
+    row-gap: 0.6rem;
+  }
+
   .nav-search-bar {
+    order: 5;
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .location-text-group {
     display: none;
+  }
+
+  .location-pill {
+    max-width: none;
+    padding: 0.35rem 0.6rem;
   }
 }
 
@@ -329,6 +352,12 @@
 }
 
 @media (max-width: 480px) {
+  .navbar-main {
+    padding: 0.5rem 0;
+  }
+  .navbar-main .container {
+    gap: 0.5rem;
+  }
   .brand-title {
     font-size: 1.1rem;
   }
@@ -337,5 +366,12 @@
   }
   .nav-actions {
     gap: 0.5rem;
+  }
+  /* Portal shortcuts and the Explore link live in the account dropdown
+     on small screens (they stay reachable there) */
+  .nav-btn-portal,
+  .nav-btn-admin,
+  .nav-actions .nav-link {
+    display: none;
   }
 }
