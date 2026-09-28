@@ -9,9 +9,16 @@ import {
   ShieldCheck,
   LogOut,
   Package,
-  ChevronDown
+  ChevronDown,
+  Tag
 } from 'lucide-react';
-import { useAuth, filterNegotiationsForSeller } from '../../context/AuthContext';
+import {
+  useAuth,
+  filterNegotiationsForSeller,
+  filterNegotiationsForCustomer,
+  isAwaitingSeller,
+  isAwaitingCustomer
+} from '../../context/AuthContext';
 import './Navbar.css';
 
 export const Navbar = () => {
@@ -40,8 +47,16 @@ export const Navbar = () => {
   // Live cart count (total quantity of real cart items in AuthContext)
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Live count of THIS seller's negotiations (same identity filter as the queue)
-  const sellerOfferCount = filterNegotiationsForSeller(negotiations, currentUser).length;
+  // Live count of THIS seller's queries still waiting for a response
+  // (same identity filter as the seller queue)
+  const sellerOfferCount = filterNegotiationsForSeller(negotiations, currentUser).filter((neg) =>
+    isAwaitingSeller(neg.status)
+  ).length;
+
+  // Live count of THIS customer's open bargaining queries
+  const customerBargainCount = filterNegotiationsForCustomer(negotiations, currentUser).filter(
+    (neg) => isAwaitingSeller(neg.status) || isAwaitingCustomer(neg.status)
+  ).length;
 
   // Top search bar: Enter or the search button → ProductListing with ?search= applied
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,6 +146,9 @@ export const Navbar = () => {
                 <Link to="/orders" className="nav-link text-sm font-medium hide-on-mobile">
                   My Orders
                 </Link>
+                <Link to="/negotiations" className="nav-link-bargain text-sm font-medium hide-on-mobile">
+                  My Bargains{customerBargainCount > 0 ? ` (${customerBargainCount})` : ''}
+                </Link>
                 <Link to="/cart" className="cart-btn flex items-center gap-1" aria-label="Shopping Cart">
                   <ShoppingBag size={18} />
                   <span className="cart-badge">{cartCount}</span>
@@ -200,6 +218,14 @@ export const Navbar = () => {
                           onClick={() => setDropdownOpen(false)}
                         >
                           <Package size={15} /> My Orders
+                        </Link>
+                        <Link
+                          to="/negotiations"
+                          className="dropdown-item flex items-center gap-2"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Tag size={15} /> My Bargains
+                          {customerBargainCount > 0 ? ` (${customerBargainCount})` : ''}
                         </Link>
                         <Link
                           to="/cart"

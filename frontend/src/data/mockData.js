@@ -458,10 +458,15 @@ export const MOCK_NEGOTIATIONS = [
     productImage: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=300&auto=format&fit=crop&q=80',
     originalPrice: 27990,
     offeredPrice: 25000,
+    counterPrice: null,
+    agreedPrice: null,
     sellerId: 'seller_2',
     sellerName: 'Sharma Furniture Gallery',
     buyerName: 'Aarav Mehta (Customer)',
-    status: 'pending_seller', // 'pending_seller' | 'accepted' | 'countered' | 'rejected'
+    buyerEmail: 'customer@neardeal.local',
+    // Query model: pending_seller | pending_customer | accepted | declined | closed
+    status: 'pending_seller',
+    createdAt: '2026-09-28T09:50:00.000Z',
     expiresInHours: 12,
     sellerCommissionAmount: 500, // 2% of ₹25,000 platform fee from seller
     history: [
@@ -475,10 +480,14 @@ export const MOCK_NEGOTIATIONS = [
     productImage: 'https://live.staticflickr.com/152/402173682_30e4b60f13_b.jpg',
     originalPrice: 11499,
     offeredPrice: 10499,
+    counterPrice: 10499, // seller's counter that the customer accepted
+    agreedPrice: 10499, // accepted deal — the price the customer may buy at
     sellerId: 'seller_3',
     sellerName: 'Sapna Sangeeta Home Interiors',
     buyerName: 'Aarav Mehta (Customer)',
+    buyerEmail: 'customer@neardeal.local',
     status: 'accepted',
+    createdAt: '2026-09-27T10:00:00.000Z',
     expiresInHours: 24,
     sellerCommissionAmount: 209.98, // 2% of ₹10,499
     history: [
@@ -493,11 +502,14 @@ export const MOCK_NEGOTIATIONS = [
     productTitle: 'Sheesham Wood Coffee Table with Carved Top',
     productImage: 'https://live.staticflickr.com/4049/4353388318_09acf5d832_b.jpg',
     originalPrice: 7499,
-    offeredPrice: 6200,
+    offeredPrice: 6200, // customer's offer (kept intact when the seller counters)
+    counterPrice: 6600, // seller's counter — waiting for the customer
+    agreedPrice: null,
     sellerId: 'seller_1',
     sellerName: 'Vijay Nagar Furniture House',
     buyerName: 'Vikram Singh',
-    status: 'countered',
+    status: 'pending_customer',
+    createdAt: '2026-09-26T15:20:00.000Z',
     expiresInHours: 6,
     sellerCommissionAmount: 132, // 2% of ₹6,600 (countered)
     history: [
