@@ -5,7 +5,7 @@ import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/Loader';
-import { MOCK_PRODUCTS } from '../../data/mockData';
+import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { formatDistance } from '../../utils/formatters';
 import { Search, SlidersHorizontal, Tag } from 'lucide-react';
@@ -26,28 +26,39 @@ export const ProductListing = () => {
   const [sortOption, setSortOption] = useState('relevance');
 
 
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(
+    MOCK_CATEGORIES.includes(searchParams.get('category')) ? searchParams.get('category') : MOCK_CATEGORIES[0]
+  );
   const searchParam = searchParams.get('search') || '';
+  const categoryParam = searchParams.get('category') || '';
   const [searchQuery, setSearchQuery] = useState(searchParam);
   const [onlyBargainable, setOnlyBargainable] = useState(false);
+  // Collapsible filters on tablet/mobile widths (see ProductListing.css)
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Re-sync when a new ?search= arrives from the top navigation bar while
+  // Re-sync when a new ?search= or ?category= arrives from navigation while
   // this page is already mounted (React's render-phase state adjustment).
   const [lastSearchParam, setLastSearchParam] = useState(searchParam);
   if (searchParam !== lastSearchParam) {
     setLastSearchParam(searchParam);
     setSearchQuery(searchParam);
   }
+  const [lastCategoryParam, setLastCategoryParam] = useState(categoryParam);
+  if (categoryParam !== lastCategoryParam) {
+    setLastCategoryParam(categoryParam);
+    setSelectedCategory(MOCK_CATEGORIES.includes(categoryParam) ? categoryParam : MOCK_CATEGORIES[0]);
+  }
 
 
 
-  const categories = ['All', 'Groceries', 'Electronics', 'Home & Kitchen'];
+  const categories = MOCK_CATEGORIES;
+  const ALL_CATEGORIES = MOCK_CATEGORIES[0];
   // Determine price bounds from mock data for slider defaults
 
 
 
   const filteredProducts = MOCK_PRODUCTS.filter((product) => {
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === ALL_CATEGORIES || product.category === selectedCategory;
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           product.sellerName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDistance = product.distanceKm <= maxRadiusKm;
@@ -77,15 +88,27 @@ export const ProductListing = () => {
   return (
     <div className="product-listing-page container mt-6">
       <div className="listing-header mb-6">
-        <h1 className="text-2xl font-bold">Local Marketplace Catalog</h1>
+        <h1 className="text-2xl font-bold">Local Furniture Catalog</h1>
         <p className="text-muted text-sm">
-          Browse products from neighborhood vendors within {formatDistance(maxRadiusKm)} radius
+          Browse sofas, wardrobes, dining sets and more from neighborhood furniture stores within{' '}
+          {formatDistance(maxRadiusKm)} radius
         </p>
       </div>
 
+      {/* Collapsible filters for tablet/mobile (hidden on desktop) */}
+      <button
+        type="button"
+        className="mobile-filter-toggle"
+        onClick={() => setFiltersOpen((prev) => !prev)}
+        aria-expanded={filtersOpen}
+      >
+        <SlidersHorizontal size={14} />
+        {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+      </button>
+
       <div className="listing-layout">
         {/* Sidebar Filters */}
-        <aside className="listing-sidebar">
+        <aside className={`listing-sidebar ${filtersOpen ? 'filters-open' : ''}`}>
           <Card padding="md" className="filter-card">
             <div className="flex items-center justify-between mb-4">
               <span className="font-bold text-sm flex items-center gap-1">
@@ -94,7 +117,7 @@ export const ProductListing = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedCategory('All');
+                  setSelectedCategory(ALL_CATEGORIES);
                   setSearchQuery('');
                   setOnlyBargainable(false);
                   setMinPrice(priceMin);
@@ -184,7 +207,7 @@ export const ProductListing = () => {
                   >
                     <span>{cat}</span>
                     <span className="count-badge">
-                      {cat === 'All' ? MOCK_PRODUCTS.length : MOCK_PRODUCTS.filter(p => p.category === cat).length}
+                      {cat === ALL_CATEGORIES ? MOCK_PRODUCTS.length : MOCK_PRODUCTS.filter(p => p.category === cat).length}
                     </span>
                   </button>
                 ))}
@@ -213,7 +236,7 @@ export const ProductListing = () => {
             <div className="search-input-wrap">
               <Input
                 icon={Search}
-                placeholder="Filter by product name, seller, or category..."
+                placeholder="Filter by furniture name, store, or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Filter products"
@@ -247,7 +270,7 @@ export const ProductListing = () => {
             </div>
           ) : (
             <EmptyState
-              title="No products found in this range"
+              title="No furniture found in this range"
               message={`Try expanding your discovery radius beyond ${formatDistance(maxRadiusKm)} or clearing category filters.`}
               action={
                 <Button variant="outline" size="sm" onClick={() => setMaxRadiusKm(20)}>

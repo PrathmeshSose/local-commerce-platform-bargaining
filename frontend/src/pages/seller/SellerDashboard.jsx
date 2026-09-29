@@ -6,17 +6,35 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { Input } from '../../components/common/Input';
 import { MOCK_PRODUCTS } from '../../data/mockData';
-import { useAuth, filterNegotiationsForSeller } from '../../context/AuthContext';
-import { formatINR } from '../../utils/formatters';
+import { useAuth, filterNegotiationsForSeller, filterOrdersForSeller, isAwaitingSeller, isAwaitingCustomer } from '../../context/AuthContext';
+import { EmptyState } from '../../components/common/Loader';
+import { formatINR, formatDateIN } from '../../utils/formatters';
 import {
   Package,
   Clock,
   TrendingUp,
   Tag,
   ArrowRight,
-  Percent
+  Percent,
+  ShoppingBag,
+  User,
+  MessageSquare
 } from 'lucide-react';
 import './SellerDashboard.css';
+
+// Human readable label for the offer that produced a negotiated order price.
+// (Only ACCEPTED deals ever reach checkout, so 'accepted' is the common case.)
+const offerStatusLabel = (status) =>
+  ({
+    accepted: 'Offer Accepted',
+    countered: 'Counter Accepted',
+    countered_to_customer: 'Counter Accepted',
+    pending_customer: 'Counter Accepted',
+    pending: 'Customer Offer Applied',
+    pending_seller: 'Customer Offer Applied',
+    declined: 'Offer Rejected',
+    rejected: 'Offer Rejected'
+  })[status] || 'Smart Offer';
 
 export const SellerDashboard = () => {
   const [sellerProducts, setSellerProducts] = useState(MOCK_PRODUCTS.filter((p) => p.sellerId === 'seller_2'));
@@ -24,10 +42,26 @@ export const SellerDashboard = () => {
   // Shared negotiation state lives in AuthContext (no duplicate store here).
   // Incoming queue = offers addressed to THIS logged-in seller (identity match),
   // still awaiting a response.
-  const { negotiations, currentUser, acceptNegotiation, declineNegotiation, counterNegotiation } = useAuth();
-  const pendingNegotiations = filterNegotiationsForSeller(negotiations, currentUser).filter(
-    (n) => n.status === 'pending' || n.status === 'pending_seller'
-  );
+  const {
+    negotiations,
+    orders,
+    currentUser,
+    acceptNegotiation,
+    declineNegotiation,
+    counterNegotiation
+  } = useAuth();
+  // A query counts as "pending" ONLY while it waits for THIS seller's decision
+  // (pending_seller). Once countered it moves to "Waiting for Customer", and it
+  // becomes an order only after the customer completes checkout — so a pending
+  // bargain can never show up as an order.
+  const sellerNegotiations = filterNegotiationsForSeller(negotiations, currentUser);
+  const pendingNegotiations = sellerNegotiations.filter((n) => isAwaitingSeller(n.status));
+  const counteredNegotiations = sellerNegotiations.filter((n) => isAwaitingCustomer(n.status));
+
+  // Real orders placed by customers at checkout — same shared order state the
+  // customer's /orders page reads. Filtered by THIS seller's identity, so only
+  // this seller's products are listed (never another seller's orders).
+  const sellerOrders = filterOrdersForSeller(orders, currentUser);
 
   // Active negotiation being countered
   const [activeCounterNeg, setActiveCounterNeg] = useState(null);
@@ -54,9 +88,10 @@ export const SellerDashboard = () => {
     setSellerProducts(sellerProducts.filter((p) => p.id !== id));
   };
 
-  // Handlers for Accept, Decline, Counter actions on negotiations.
-  // Both update the shared negotiation record so the outcomes differ
-  // (status 'accepted' vs 'rejected') instead of just dropping the row.
+  // Handlers for Accept, Decline, Counter actions on pending queries.
+  // Each one updates the shared negotiation record so the outcomes differ
+  // (accepted / declined / pending_customer) instead of dropping the row,
+  // and none of them ever creates an order — that happens at customer checkout.
   const handleAcceptNegotiation = (id) => {
     acceptNegotiation(id);
   };
@@ -98,7 +133,7 @@ export const SellerDashboard = () => {
       <div className="dashboard-header flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Sharma Electronics & Gadgets</h1>
+            <h1 className="text-2xl font-bold">Sharma Furniture Gallery</h1>
             <Badge variant="success" size="sm">Verified Merchant</Badge>
           </div>
           <p className="text-sm text-muted">
@@ -114,7 +149,7 @@ export const SellerDashboard = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="kpi-metrics-grid grid grid-cols-4 gap-4 mb-6">
+      <div className="kpi-metrics-grid grid gap-4 mb-6">
         <Card padding="md" className="kpi-card">
           <div className="flex items-center justify-between text-muted text-xs font-semibold mb-1">
             <span>Gross Marketplace Sales</span>
@@ -154,31 +189,135 @@ export const SellerDashboard = () => {
           <span className="text-2xl font-bold text-bargain">{pendingNegotiations.length}</span>
           <span className="text-xs text-muted mt-1 block">Requires response</span>
         </Card>
+
+        <Card padding="md" className="kpi-card">
+          <div className="flex items-center justify-between text-muted text-xs font-semibold mb-1">
+            <span>Orders Received</span>
+            <ShoppingBag size={16} className="text-accent" />
+          </div>
+          <span className="text-2xl font-bold text-main">{sellerOrders.length}</span>
+          <span className="text-xs text-muted mt-1 block">Placed by customers at checkout</span>
+        </Card>
       </div>
 
+      {/* Real customer orders (created at checkout) — the source of truth for
+          seller order visibility, independent of negotiation records */}
+      <Card padding="md" className="seller-orders-card mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-base flex items-center gap-2">
+            <ShoppingBag size={16} className="text-accent" /> Customer Orders & Pickup Requests
+            <Badge variant={sellerOrders.length ? 'success' : 'default'} size="sm">
+              {sellerOrders.length} {sellerOrders.length === 1 ? 'Order' : 'Orders'}
+            </Badge>
+          </h3>
+          <span className="text-xs text-muted">Live from customer checkout • 2% platform fee per order</span>
+        </div>
+
+        {sellerOrders.length === 0 ? (
+          <EmptyState
+            title="No orders yet"
+            message="Orders placed by customers for your store's products appear here the moment checkout completes."
+          />
+        ) : (
+          <div className="seller-orders-list flex flex-col gap-3">
+            {sellerOrders.map((order) => (
+              <div key={order.id} className="seller-order-row surface-card p-3">
+                <div className="flex items-center gap-3">
+                  <img src={order.productImage} alt={order.productName} className="offer-thumb" />
+                  <div className="seller-order-info">
+                    <h5 className="font-semibold text-xs">{order.productName}</h5>
+                    <p className="text-xs text-muted">
+                      Order #{order.id} • {formatDateIN(order.date)} • Qty: {order.quantity}
+                    </p>
+                    <p className="text-xs text-muted flex items-center gap-1">
+                      <User size={12} /> Customer: {order.customerName || 'Customer'}
+                    </p>
+                    <div className="seller-order-price-row flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-xs font-bold text-main">
+                        Final: {formatINR(order.unitPrice)}
+                      </span>
+                      <span className="text-xs text-muted">
+                        Total: {formatINR(order.totalAmount)}
+                      </span>
+                      {order.negotiated ? (
+                        <>
+                          {order.originalPrice ? (
+                            <span className="text-xs text-muted line-through">
+                              {formatINR(order.originalPrice)}
+                            </span>
+                          ) : null}
+                          <Badge variant="bargain" size="sm">
+                            Smart Offer • {offerStatusLabel(order.offerStatus)}
+                          </Badge>
+                        </>
+                      ) : (
+                        <Badge variant="default" size="sm">Normal Purchase</Badge>
+                      )}
+                      <span className="text-xs text-muted">
+                        2% fee: {formatINR(order.platformCommission, true)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="seller-order-side flex items-center gap-2">
+                  <Badge
+                    variant={order.status === 'Delivered' ? 'success' : 'info'}
+                    size="sm"
+                  >
+                    {order.status}
+                  </Badge>
+                  <span className="text-xs text-muted whitespace-nowrap">{order.paymentStatus}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
       <div className="seller-dashboard-sections grid grid-cols-2 gap-6">
-        {/* Pending Negotiations Column */}
+        {/* Incoming customer offers awaiting THIS seller's decision (concept A —
+            never an order). Countered queries move to "Waiting for Customer". */}
         <Card padding="md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-base flex items-center gap-2">
-              <Tag size={16} className="text-bargain" /> Pending Customer Bargains
+              <Tag size={16} className="text-bargain" /> Incoming Offers (Pending Queries)
+              <Badge variant="bargain" size="sm">{pendingNegotiations.length}</Badge>
             </h3>
             <Link to="/seller/negotiations" className="text-xs text-accent font-semibold flex items-center gap-1">
               View Queue <ArrowRight size={12} />
             </Link>
           </div>
 
+          <p className="pending-queries-note text-xs text-muted flex items-center gap-1">
+            <MessageSquare size={12} />
+            {counteredNegotiations.length === 0
+              ? 'No counters pending a customer response.'
+              : `${counteredNegotiations.length} counter offer(s) waiting for the customer.`}{' '}
+            Orders only appear above once customers finish checkout.
+          </p>
+
           <div className="offers-list flex flex-col gap-3">
+            {pendingNegotiations.length === 0 && (
+              <EmptyState
+                title="No pending queries"
+                message="New customer price offers for your products show up here instantly."
+              />
+            )}
             {pendingNegotiations.map((neg) => (
               <div key={neg.id} className="offer-summary-row flex items-center justify-between p-3 surface-card">
                 <div className="flex items-center gap-3">
                   <img src={neg.productImage} alt={neg.productTitle} className="offer-thumb" />
                   <div>
                     <h5 className="font-semibold text-xs">{neg.productTitle}</h5>
-                    <p className="text-xs text-muted">Buyer: {neg.buyerName}</p>
+                    <p className="text-xs text-muted">
+                      Buyer: {neg.buyerName}
+                      {neg.createdAt ? ` • Received ${formatDateIN(neg.createdAt)}` : ''}
+                    </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted line-through">{formatINR(neg.originalPrice)}</span>
                       <span className="text-xs font-bold text-bargain">{formatINR(neg.offeredPrice)}</span>
+                      <Badge variant="bargain" size="sm">Pending</Badge>
                     </div>
                   </div>
                 </div>

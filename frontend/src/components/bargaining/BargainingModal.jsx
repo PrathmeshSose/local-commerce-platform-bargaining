@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
@@ -10,18 +10,30 @@ import './BargainingModal.css';
 export const BargainingModal = ({
   isOpen,
   onClose,
-  product
+  product,
+  initialOffer = null // optional prefill (e.g. "Counter Again")
 }) => {
   // Ensure hooks are called on every render
   const hasProduct = !!product;
-  const initialOffer = product ? Math.round(product.price * 0.90) : 0;
-  const [offerPrice, setOfferPrice] = useState(initialOffer);
+  const defaultOffer = product ? Math.round(product.price * 0.90) : 0;
+  const [offerPrice, setOfferPrice] = useState(initialOffer ?? defaultOffer);
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [validationError, setValidationError] = useState('');
 
   // Submitted offers are stored in the shared AuthContext negotiations state
   const { submitCustomerOffer } = useAuth();
+
+  // Prefill every time the modal opens (new offer vs "Counter Again")
+  useEffect(() => {
+    if (isOpen && product) {
+      setOfferPrice(initialOffer ?? Math.round(product.price * 0.90));
+      setNote('');
+      setSubmitted(false);
+      setValidationError('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!hasProduct) return null;
 
@@ -44,8 +56,9 @@ export const BargainingModal = ({
       return;
     }
     setValidationError('');
-    // Persist the offer in the shared negotiation state so the
-    // negotiated price can reach Add to Cart / the seller queue.
+    // Persist the offer as a PENDING query in the shared negotiation state so
+    // the seller sees it in their queue. The negotiated price only reaches
+    // Add to Cart AFTER the seller accepts the deal.
     submitCustomerOffer(product, numericOffer, note);
     setSubmitted(true);
   };
@@ -53,7 +66,7 @@ export const BargainingModal = ({
   const handleReset = () => {
     setSubmitted(false);
     setValidationError('');
-    setOfferPrice(initialOffer);
+    setOfferPrice(defaultOffer);
     setNote('');
     onClose();
   };
@@ -70,10 +83,12 @@ export const BargainingModal = ({
           <div className="bargain-success-icon">
             <CheckCircle2 size={44} color="#10b981" />
           </div>
-          <h4>Offer Dispatched to Seller!</h4>
+          <h4>Offer Sent to Seller!</h4>
           <p className="text-muted text-sm">
-            Your counter-offer of <strong>{formatINR(numericOffer)}</strong> has been sent to{' '}
-            <strong>{product.sellerName}</strong>. You will receive an instant notification when the seller accepts, counters, or declines.
+            Your offer of <strong>{formatINR(numericOffer)}</strong> has been sent to{' '}
+            <strong>{product.sellerName}</strong> as a pending query. The seller can accept,
+            decline or counter it — <strong>no order is created yet</strong>. Track it any time
+            under <strong>My Bargains</strong>.
           </p>
           <div className="bargain-success-card">
             <div className="flex justify-between text-sm">

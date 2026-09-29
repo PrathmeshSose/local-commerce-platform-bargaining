@@ -13,3 +13,57 @@
 .admin-kpi-card:nth-child(2) { border-top-color: var(--secondary); }
 .admin-kpi-card:nth-child(3) { border-top-color: var(--accent); }
 .admin-kpi-card:nth-child(4) { border-top-color: var(--bargain); }
+
+/* Two-column sections squeeze the action rows (Suspend/Approve/Reject) at
+   tablet width — collapse to a single column while the viewport is narrow. */
+@media (max-width: 900px) {
+  .admin-sections-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Responsive admin list rows ---------- */
+@media (max-width: 640px) {
+  .user-item,
+  .product-item,
+  .review-item,
+  .order-fee-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .user-item > div:first-child,
+  .product-item > div:first-child,
+  .review-item > div:first-child {
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .user-item > div:last-child,
+  .product-item > div:last-child,
+  .review-item > div:last-child {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .user-item > div:last-child .btn,
+  .product-item > div:last-child .btn,
+  .review-item > div:last-child .btn {
+    flex: 0 1 auto;
+    white-space: normal;
+    padding: 8px 12px;
+  }
+
+  .order-fee-row > .text-right {
+    text-align: left;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    align-items: baseline;
+  }
+}

@@ -154,19 +154,31 @@
   flex-shrink: 0;
 }
 
-/* ------ Action buttons: pinned to bottom ------ */
+/* ------ Action buttons: pinned to bottom, two equal columns ------ */
 .product-actions-grid {
   margin-top: auto;
   padding-top: 0.875rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
-.product-actions-grid .btn-view {
-  flex: 1;
+.product-actions-grid .btn {
+  width: 100%;
   min-width: 0;
+  /* 0.35rem keeps "View Details" on one line inside a ~77px grid cell;
+     white-space/overflow-wrap below guarantee it can never clip if it can't */
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  gap: 0.35rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
 }
 
+.product-actions-grid .btn-view,
 .product-actions-grid .btn-bargain {
-  flex-shrink: 0;
+  justify-self: stretch;
 }

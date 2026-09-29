@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { ProductCard } from '../../components/common/ProductCard';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
-import { MOCK_PRODUCTS, MOCK_SELLERS } from '../../data/mockData';
+import { MOCK_PRODUCTS, MOCK_SELLERS, MOCK_CATEGORIES } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { formatDistance } from '../../utils/formatters';
 import {
@@ -32,21 +32,21 @@ export const Home = () => {
           <div className="hero-content mx-auto text-center flex flex-col items-center">
             <div className="hero-badge flex items-center gap-2">
               <Sparkles size={14} className="text-bargain" />
-              <span>Hyperlocal Commerce & Smart Bargaining</span>
+              <span>Hyperlocal Furniture & Smart Bargaining</span>
             </div>
             <h1 className="hero-heading">
-              Support neighborhood shops. <br />
-              <span className="text-gradient">Negotiate fair prices in real-time.</span>
+              Find furniture you'll love, <br />
+              <span className="text-gradient">from stores just around the corner.</span>
             </h1>
             <p className="hero-subtext">
-              Discover authentic spices, electronics, and handcrafted decor within{' '}
+              Browse sofas, beds, dining sets, wardrobes and more from verified sellers within{' '}
               <strong>{formatDistance(maxRadiusKm)}</strong> of {userLocation}. Make real-time counter offers and pick up locally or order delivery.
             </p>
 
             <div className="hero-cta-group flex items-center justify-center gap-3">
               <Link to="/products">
                 <Button variant="primary" size="lg" icon={ArrowRight}>
-                  Explore Local Deals
+                  Explore Furniture Deals
                 </Button>
               </Link>
               <Link to="/seller">
@@ -97,19 +97,32 @@ export const Home = () => {
         <div className="section-header flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="section-title">Products Near You</h2>
+              <h2 className="section-title">Furniture Near You</h2>
               <Badge variant="success" size="sm">
                 Within {formatDistance(maxRadiusKm)}
               </Badge>
             </div>
-            <p className="text-sm text-muted">Direct from verified neighborhood merchants in your area</p>
+            <p className="text-sm text-muted">Handpicked pieces from verified neighborhood furniture stores</p>
           </div>
           <Link to="/products" className="text-sm font-semibold text-accent flex items-center gap-1">
             View all ({MOCK_PRODUCTS.length}) <ArrowRight size={14} />
           </Link>
         </div>
 
-        <div className="product-grid grid grid-cols-3 gap-6">
+        {/* Shop by furniture room/category */}
+        <div className="home-category-chips mb-4">
+          {MOCK_CATEGORIES.slice(1).map((cat) => (
+            <Link
+              key={cat}
+              to={`/products?category=${encodeURIComponent(cat)}`}
+              className="category-chip"
+            >
+              {cat}
+            </Link>
+          ))}
+        </div>
+
+        <div className="home-products-grid">
           {nearbyProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -120,12 +133,12 @@ export const Home = () => {
       <section className="section-sellers container mt-12">
         <div className="section-header flex items-center justify-between mb-4">
           <div>
-            <h2 className="section-title">Featured Neighborhood Sellers</h2>
-            <p className="text-sm text-muted">Verified local shops with flexible bargaining and prompt store pickup</p>
+            <h2 className="section-title">Featured Neighborhood Stores</h2>
+            <p className="text-sm text-muted">Verified local furniture shops with flexible bargaining and prompt store pickup</p>
           </div>
         </div>
 
-        <div className="sellers-grid grid grid-cols-3 gap-6">
+        <div className="sellers-grid">
           {MOCK_SELLERS.map((seller) => (
             <Card key={seller.id} hoverEffect className="seller-card">
               <div className="seller-banner" style={{ backgroundImage: `url(${seller.banner})` }}>

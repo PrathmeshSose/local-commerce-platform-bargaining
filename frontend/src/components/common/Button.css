@@ -18,6 +18,17 @@
   pointer-events: none;
 }
 
+/* Small screens: let long labels (e.g. "Authenticate Administrative Access")
+   wrap onto two lines instead of clipping out of the button/card */
+@media (max-width: 480px) {
+  .btn {
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    max-width: 100%;
+  }
+}
+
 /* Sizes */
 .btn-sm {
   padding: 0.35rem 0.75rem;

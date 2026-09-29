@@ -222,8 +222,9 @@ const CheckoutForm = ({ cartItems, subtotal }) => {
     e.preventDefault();
     if (!validate()) return;
     // Store the completed checkout in shared AuthContext order state
-    // (effective/negotiated prices; customer total excludes seller 2%)
-    placeOrder(cartItems);
+    // (effective/negotiated prices; customer total excludes seller 2%).
+    // Buyer details are attached so the seller's order card shows who bought.
+    placeOrder(cartItems, formData);
     setOrderPlaced(true);
   };
 

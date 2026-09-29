@@ -4,8 +4,9 @@ import { Badge } from '../../components/common/Badge';
 import { MOCK_ADMIN_METRICS, MOCK_SELLERS, MOCK_ORDERS, MOCK_USERS, MOCK_REVIEWS, MOCK_PRODUCTS } from '../../data/mockData';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { formatINR } from '../../utils/formatters';
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Store,
   Users,
@@ -81,10 +82,10 @@ export const AdminPanel = () => {
         <Card padding="md" className="admin-kpi-card">
           <div className="flex justify-between items-center text-xs text-muted font-semibold mb-1">
             <span>Gross Marketplace Volume</span>
-            <DollarSign size={16} className="text-accent" />
+            <IndianRupee size={16} className="text-accent" />
           </div>
           <span className="text-2xl font-bold text-main">
-            ${MOCK_ADMIN_METRICS.totalGrossVolume.toLocaleString()}
+            {formatINR(MOCK_ADMIN_METRICS.totalGrossVolume)}
           </span>
           <span className="text-xs text-muted mt-1 block">Completed transactions</span>
         </Card>
@@ -95,7 +96,7 @@ export const AdminPanel = () => {
             <Percent size={16} style={{ color: 'var(--secondary)' }} />
           </div>
           <span className="text-2xl font-bold" style={{ color: 'var(--secondary)' }}>
-            ${MOCK_ADMIN_METRICS.totalPlatformCommission.toLocaleString()}
+            {formatINR(MOCK_ADMIN_METRICS.totalPlatformCommission)}
           </span>
           <span className="text-xs text-accent mt-1 block flex items-center gap-1">
             <ShieldCheck size={12} /> Revenue from sellers
@@ -278,7 +279,7 @@ export const AdminPanel = () => {
         {/* Recent Platform Orders & Fees */}
         <Card padding="md">
           <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-            <DollarSign size={16} className="text-secondary" /> Recent Settlements & 2% Fee Cut
+            <IndianRupee size={16} className="text-secondary" /> Recent Settlements & 2% Fee Cut
           </h3>
 
           <div className="admin-orders-list flex flex-col gap-3">
@@ -290,9 +291,9 @@ export const AdminPanel = () => {
                   <span className="text-xs text-accent">{ord.fulfillmentType}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-bold block">${ord.totalAmount.toFixed(2)} GMV</span>
+                  <span className="text-sm font-bold block">{formatINR(ord.totalAmount)} GMV</span>
                   <span className="text-xs font-semibold text-secondary">
-                    +${ord.platformCommission.toFixed(2)} (2% platform)
+                    +{formatINR(ord.platformCommission, true)} (2% platform)
                   </span>
                 </div>
               </div>

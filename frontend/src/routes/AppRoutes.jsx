@@ -10,6 +10,7 @@ import { ProductListing } from '../pages/customer/ProductListing';
 import { ProductDetails } from '../pages/customer/ProductDetails';
 import { Cart } from '../pages/customer/Cart';
 import { Orders } from '../pages/customer/Orders';
+import { CustomerNegotiations } from '../pages/customer/Negotiations';
 
 // Seller Pages
 import { SellerDashboard } from '../pages/seller/SellerDashboard';
@@ -61,6 +62,8 @@ export const AppRoutes = () => {
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/orders" element={<Orders />} />
+        {/* Customer bargaining queries (concept A/B — never orders) */}
+        <Route path="/negotiations" element={<CustomerNegotiations />} />
 
         {/* Seller Portal Routes (Protected) */}
         <Route
