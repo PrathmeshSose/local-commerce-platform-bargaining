@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Tag, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Tag, ShieldCheck, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import { formatINR, formatDistance } from '../../utils/formatters';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, isAwaitingCustomer, NEGOTIATION_STATUS } from '../../context/AuthContext';
 import './BargainingModal.css';
 
 export const BargainingModal = ({
   isOpen,
   onClose,
   product,
-  initialOffer = null // optional prefill (e.g. "Counter Again")
+  initialOffer = null, // optional prefill (e.g. "Counter Again")
+  activeNegotiation = null // an open thread on this product, if there is one
 }) => {
   // Ensure hooks are called on every render
   const hasProduct = !!product;
@@ -19,10 +21,21 @@ export const BargainingModal = ({
   const [offerPrice, setOfferPrice] = useState(initialOffer ?? defaultOffer);
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  // True when the server auto-rejected the offer (below the seller's hidden
+  // reserve): the thread exists but was never queued for the seller.
+  const [autoDeclined, setAutoDeclined] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Submitted offers are stored in the shared AuthContext negotiations state
-  const { submitCustomerOffer } = useAuth();
+  // Offers are written straight to MongoDB (POST /api/negotiations/offer) and
+  // the list is re-read from the backend afterwards.
+  const { submitCustomerOffer, counterNegotiation, isAuthenticated } = useAuth();
+
+  // Answering a seller's counter must update the EXISTING thread
+  // (POST /api/negotiations/:id/respond). Creating a second negotiation for the
+  // same product is rejected by the backend, and would be a duplicate anyway.
+  const answeringThread =
+    activeNegotiation && isAwaitingCustomer(activeNegotiation.status) ? activeNegotiation : null;
 
   // Prefill every time the modal opens (new offer vs "Counter Again")
   useEffect(() => {
@@ -31,6 +44,7 @@ export const BargainingModal = ({
       setNote('');
       setSubmitted(false);
       setValidationError('');
+      setIsSubmitting(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -45,8 +59,14 @@ export const BargainingModal = ({
   const discountAmount = Math.max(0, product.price - numericOffer);
   const discountPercent = product.price > 0 ? Math.round((discountAmount / product.price) * 100) : 0;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    // A session-less offer would reach `protect` and come back as the raw 401
+    // "Not authorized, no token". The sign-in requirement is surfaced here.
+    if (!isAuthenticated) {
+      setValidationError('Please sign in with your customer account to send this offer.');
+      return;
+    }
     if (numericOffer <= 0) {
       setValidationError('Please enter a valid offer amount.');
       return;
@@ -56,19 +76,58 @@ export const BargainingModal = ({
       return;
     }
     setValidationError('');
-    // Persist the offer as a PENDING query in the shared negotiation state so
-    // the seller sees it in their queue. The negotiated price only reaches
-    // Add to Cart AFTER the seller accepts the deal.
-    submitCustomerOffer(product, numericOffer, note);
-    setSubmitted(true);
+    setAutoDeclined(false);
+
+    setIsSubmitting(true);
+    try {
+      if (answeringThread) {
+        // Same MongoDB document the seller read — no second negotiation is created
+        const result = await counterNegotiation(
+          answeringThread.id || answeringThread._id,
+          numericOffer
+        );
+        if (!result?.ok) {
+          setValidationError(result?.error || 'Your reply could not be sent. Please try again.');
+          return;
+        }
+      } else {
+        // Persists the PENDING query on the backend, where the seller reads it
+        // from. Success is only reported once MongoDB confirmed the write — the
+        // negotiated price only reaches Add to Cart AFTER the seller accepts.
+        const created = await submitCustomerOffer(product, numericOffer);
+        // A 200 reply can still be "REJECTED by SYSTEM" (offer below the
+        // seller's hidden reserve): that thread never waits with the seller,
+        // so the pending-confirmation wording must not be shown for it.
+        setAutoDeclined(created?.status === NEGOTIATION_STATUS.DECLINED);
+      }
+      setSubmitted(true);
+    } catch (err) {
+      // Real server rejection (duplicate active offer, non-negotiable product,
+      // backend down…) — never papered over with a fake success screen.
+      setValidationError(err.message || 'Your offer could not be sent. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setSubmitted(false);
+    setAutoDeclined(false);
     setValidationError('');
     setOfferPrice(defaultOffer);
     setNote('');
     onClose();
+  };
+
+  // From the auto-declined screen: return to the form with the default
+  // (higher) starting offer so the customer can try again without reopening
+  // the modal from the product page.
+  const handleRetry = () => {
+    setSubmitted(false);
+    setAutoDeclined(false);
+    setValidationError('');
+    setOfferPrice(defaultOffer);
+    setNote('');
   };
 
   return (
@@ -79,11 +138,42 @@ export const BargainingModal = ({
       maxWidth="520px"
     >
       {submitted ? (
+        autoDeclined ? (
+          <div className="bargain-success-view">
+            <div className="bargain-success-icon">
+              <XCircle size={44} color="#ef4444" />
+            </div>
+            <h3>Offer Declined Automatically</h3>
+            <p className="text-muted text-sm">
+              Your offer of <strong>{formatINR(numericOffer)}</strong> is below the minimum this
+              seller can accept, so the server rejected it right away — it is{' '}
+              <strong>not waiting with {product.sellerName}</strong>. Try a higher amount, or
+              browse other nearby listings. The declined thread stays visible under{' '}
+              <strong>My Bargains</strong>.
+            </p>
+            <div className="bargain-success-card">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted">Your Proposed Price:</span>
+                <span className="font-bold line-through text-muted">
+                  {formatINR(numericOffer)}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              onClick={handleRetry}
+              className="w-full"
+              style={{ marginTop: '1.25rem' }}
+            >
+              Try a Higher Offer
+            </Button>
+          </div>
+        ) : (
         <div className="bargain-success-view">
           <div className="bargain-success-icon">
             <CheckCircle2 size={44} color="#10b981" />
           </div>
-          <h4>Offer Sent to Seller!</h4>
+          <h3>Offer Sent to Seller!</h3>
           <p className="text-muted text-sm">
             Your offer of <strong>{formatINR(numericOffer)}</strong> has been sent to{' '}
             <strong>{product.sellerName}</strong> as a pending query. The seller can accept,
@@ -104,12 +194,13 @@ export const BargainingModal = ({
             Back to Marketplace
           </Button>
         </div>
+        )
       ) : (
         <form onSubmit={handleSubmit} className="bargain-form">
           <div className="bargain-product-summary">
             <img src={product.images[0]} alt={product.title} className="bargain-product-img" />
             <div>
-              <h4 className="font-semibold text-sm">{product.title}</h4>
+              <h3 className="font-semibold text-sm">{product.title}</h3>
               <p className="text-xs text-muted">Sold by {product.sellerName} ({formatDistance(product.distanceKm)} away)</p>
               <div className="bargain-price-row">
                 <span className="text-muted text-xs">Listed Price:</span>
@@ -129,6 +220,15 @@ export const BargainingModal = ({
               </p>
             </div>
           </div>
+
+          {!isAuthenticated && (
+            <p className="text-xs text-muted" role="note">
+              Offers are tied to a real buyer account —{' '}
+              <Link to="/login">sign in</Link> (or{' '}
+              <Link to="/register">create a free account</Link>) to send this offer and track
+              the seller's reply.
+            </p>
+          )}
 
           <div className="bargain-inputs-grid">
             <Input
@@ -174,7 +274,7 @@ export const BargainingModal = ({
             <Button variant="outline" type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="bargain" type="submit" icon={Tag}>
+            <Button variant="bargain" type="submit" icon={Tag} loading={isSubmitting}>
               Send Smart Offer
             </Button>
           </div>

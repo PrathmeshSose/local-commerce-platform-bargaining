@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -28,18 +28,27 @@ const statusMeta = (neg) => {
 };
 
 export const Negotiations = () => {
-  // Shared negotiation state from AuthContext — the same store the customer's
-  // BargainModal writes into and the Seller Dashboard reads from. Demo data is
-  // only the initial seed; new customer offers and seller actions land here.
-  // Queue is scoped to the logged-in seller's identity: customer offers for
-  // other sellers (and records without a seller identity) never render here.
+  // Shared negotiation state from AuthContext, which is loaded from MongoDB via
+  // GET /api/negotiations/seller. Nothing here is seeded from demo/localStorage
+  // data, so this queue shows exactly the records the customer's offer created.
+  // Scoped to the logged-in seller's real MongoDB _id: threads belonging to
+  // other sellers never render here.
   const {
     negotiations: allNegotiations,
     currentUser,
+    negotiationError,
+    refreshNegotiations,
     acceptNegotiation,
     declineNegotiation,
     counterNegotiation
   } = useAuth();
+
+  // Re-read the queue when the seller opens it, so offers submitted from
+  // another browser appear without a manual reload.
+  useEffect(() => {
+    refreshNegotiations();
+  }, [refreshNegotiations]);
+
   const negotiations = filterNegotiationsForSeller(allNegotiations, currentUser);
   const [counterValues, setCounterValues] = useState({});
   const [counterErrors, setCounterErrors] = useState({});
@@ -91,6 +100,12 @@ export const Negotiations = () => {
         </p>
       </div>
 
+      {negotiationError && (
+        <p className="neg-counter-error text-sm mb-4" role="alert">
+          {negotiationError}
+        </p>
+      )}
+
       <div className="negotiations-grid flex flex-col gap-4">
         {negotiations.map((neg) => {
           const meta = statusMeta(neg);
@@ -115,7 +130,7 @@ export const Negotiations = () => {
                 <div className="flex items-center gap-3">
                   <img src={neg.productImage} alt={neg.productTitle} className="neg-product-img" />
                   <div>
-                    <h4 className="font-bold text-sm">{neg.productTitle}</h4>
+                    <h2 className="font-bold text-sm">{neg.productTitle}</h2>
                     <span className="text-xs text-muted">Buyer: <strong>{neg.buyerName}</strong></span>
                     {neg.createdAt && (
                       <span className="text-xs text-muted block">

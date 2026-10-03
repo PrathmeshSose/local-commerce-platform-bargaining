@@ -6,6 +6,10 @@
 
 /* ------ Page wrapper ------ */
 .product-details-page {
+  /* The JSX carries mt-6, but the design system has no .mt-* utilities, so the
+     "Back to Catalog" link was sitting flush against the sticky navbar.
+     1.5rem restores the spacing that class was meant to apply. */
+  margin-top: 1.5rem;
   padding-bottom: 3rem;
   overflow-x: hidden;
   text-align: left; /* override any inherited center-align */
@@ -111,13 +115,16 @@
   margin-bottom: 0.625rem;
 }
 
-/* ------ Product title ------ */
+/* ------ Product title ------
+   Strong but not display-scale: it has to sit clearly above the price without
+   turning the right column into a hero block. */
 .product-main-title {
-  font-size: 2rem;          /* ~32px — readable, not overwhelming */
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--text-main);
-  margin: 0 0 0.75rem 0;   /* clear bottom margin before rating row */
+  margin: 0 0 0.5rem 0;
   word-break: break-word;
 }
 
@@ -136,9 +143,43 @@
   padding: 1.25rem;
 }
 
-/* Price + old price row */
-.pricing-box > .flex.items-baseline {
-  margin-bottom: 0;
+/* Price row — prominent, but compact weight and size so it reads as
+   confident pricing rather than a sale banner. */
+.pricing-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.product-price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text-main);
+}
+
+.product-price-was {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* Confirmed negotiated saving under the price */
+.savings-note {
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--accent-light);
+  color: var(--accent-foreground);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+}
+
+.savings-note svg {
+  flex-shrink: 0;
 }
 
 /* ------ Bargaining callout box ------ */
@@ -168,6 +209,31 @@
   gap: 0.75rem;
 }
 
+/* Add to Bag + Smart Bargain: equal weight on desktop (both flex:1), and a
+   comfortable full-width stack once a side-by-side pair would get cramped. */
+.action-buttons-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-buttons-row > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .action-buttons-row {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .action-buttons-row > .btn {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+
 /* Quantity selector */
 .quantity-selector {
   display: flex;
@@ -186,7 +252,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-main);
   background: transparent;
@@ -195,14 +261,19 @@
   transition: background var(--transition-fast);
 }
 
-.qty-btn:hover {
+.qty-btn:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
+}
+
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .qty-val {
   min-width: 32px;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-main);
   padding: 0 0.25rem;
@@ -218,19 +289,47 @@
   padding-top: 0;
 }
 
-.product-desc-section h4 {
-  font-size: 1rem;
-  font-weight: 700;
+/* "About this Piece" is the first section heading after the page's h1, so it
+   is an h2 — jumping straight to h4 skipped two levels. The declarations below
+   are byte-for-byte the old h4 rule (including 0.9rem), so the heading keeps
+   its exact visual treatment; only the element name changed. */
+.product-desc-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text-main);
   margin: 0 0 0.5rem 0;
   line-height: 1.3;
 }
 
 .product-desc-section p {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
-  line-height: 1.65;
+  line-height: 1.7;
   margin: 0;
+}
+
+/* Consecutive blocks in a multi-paragraph description. The first block keeps
+   the exact spacing it had before; only a second block onwards gains a gap. */
+.product-desc-section p + p,
+.product-desc-section p + .desc-features,
+.product-desc-section .desc-features + p {
+  margin-top: 0.7rem;
+}
+
+/* Feature lines written as "• …" inside the description string. */
+.product-desc-section .desc-features {
+  margin: 0;
+  padding-left: 1.15rem;
+  list-style: disc;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.product-desc-section .desc-features li {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
 /* ------ Fulfillment / delivery cards ------ */
@@ -270,7 +369,7 @@
 
 .fulfillment-item span.font-semibold {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-main);
   line-height: 1.3;
@@ -296,6 +395,21 @@
   object-fit: cover;
   border: 2px solid var(--border);
   flex-shrink: 0;
+}
+
+/* ------ Technical item id ------
+   A MongoDB id is useful for support/debugging but is not a headline for
+   shoppers, so it lives at the foot of the store summary instead of directly
+   under the product title. */
+.item-id-line {
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.75rem;
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  word-break: break-all;
 }
 
 /* ============================================================
@@ -352,12 +466,12 @@
 
 .neg-status-prices span {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
 .neg-status-prices strong {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .neg-status-help {
@@ -396,7 +510,7 @@
   }
 
   .product-main-title {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 }
 
@@ -409,7 +523,7 @@
   }
 
   .product-main-title {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
   }
 
   .fulfillment-grid {
@@ -439,12 +553,20 @@
     align-items: stretch;
   }
 
-  .quantity-selector {
-    justify-content: center;
+  /* Quantity control: label and stepper wrap instead of forcing a scrollbar.
+     flex-shrink:0 on .quantity-selector is what caused the old overflow. */
+  .quantity-row {
+    flex-wrap: wrap;
     width: 100%;
   }
 
+  .quantity-selector {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+  }
+
   .product-main-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 }

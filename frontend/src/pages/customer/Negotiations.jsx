@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -26,28 +26,26 @@ const statusMeta = (neg) => {
   return { label: 'Declined', variant: 'danger' };
 };
 
-// Minimal product descriptor so the customer page can reuse submitCustomerOffer
-const asProduct = (neg) => ({
-  id: neg.productId,
-  title: neg.productTitle,
-  price: Number(neg.originalPrice),
-  images: [neg.productImage],
-  sellerId: neg.sellerId,
-  sellerName: neg.sellerName
-});
-
 export const CustomerNegotiations = () => {
   const {
     negotiations: allNegotiations,
     currentUser,
     isAuthenticated,
-    submitCustomerOffer,
+    negotiationError,
+    refreshNegotiations,
+    counterNegotiation,
     acceptCounterOffer,
     rejectCounterOffer
   } = useAuth();
 
   const [counterValues, setCounterValues] = useState({});
   const [errors, setErrors] = useState({});
+
+  // Read this customer's threads back from MongoDB whenever the page mounts
+  // (and whenever the shared context re-reads after another account acted).
+  useEffect(() => {
+    refreshNegotiations();
+  }, [refreshNegotiations]);
 
   // Only THIS customer's queries — never another buyer's negotiations
   const negotiations = filterNegotiationsForCustomer(allNegotiations, currentUser);
@@ -73,8 +71,9 @@ export const CustomerNegotiations = () => {
       return;
     }
     setErrors((prev) => ({ ...prev, [neg.id]: '' }));
-    // Sends a new pending query back to the seller (no order is created)
-    submitCustomerOffer(asProduct(neg), amount, 'Counter price offer');
+    // Answers the seller on the SAME MongoDB thread (POST /:id/respond) — this
+    // never opens a second negotiation for the product.
+    counterNegotiation(neg.id, amount);
     setCounterValues((prev) => ({ ...prev, [neg.id]: '' }));
   };
 
@@ -91,6 +90,12 @@ export const CustomerNegotiations = () => {
           once both sides agree — an order is only created at checkout.
         </p>
       </div>
+
+      {negotiationError && (
+        <p className="cn-error text-sm mb-4" role="alert">
+          {negotiationError}
+        </p>
+      )}
 
       {!isAuthenticated && negotiations.length === 0 ? (
         <EmptyState
@@ -132,7 +137,7 @@ export const CustomerNegotiations = () => {
                   <div className="cn-product">
                     <img src={neg.productImage} alt={neg.productTitle} className="cn-product-img" />
                     <div>
-                      <h4 className="font-bold text-sm">{neg.productTitle}</h4>
+                      <h2 className="font-bold text-sm">{neg.productTitle}</h2>
                       <span className="text-xs text-muted cn-store">
                         <Store size={12} /> {neg.sellerName}
                       </span>

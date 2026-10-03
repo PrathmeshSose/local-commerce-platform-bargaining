@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Home decor photo placeholder">
+  <rect width="600" height="600" fill="#f0fdf4"/>
+  <g stroke="#153e5c" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M190 226c0-24 20-44 44-44h132c24 0 44 20 44 44v148c0 24-20 44-44 44H234c-24 0-44-20-44-44z" fill="#ecfdf5"/>
+    <path d="M232 250c34 20 102 20 136 0M232 350c34-20 102-20 136 0" fill="none"/>
+    <circle cx="300" cy="300" r="24" fill="#ffedd5" stroke="#f97316"/>
+    <path d="M196 268l-26-14M404 268l26-14M196 332l-26 14M404 332l26 14"/>
+  </g>
+</svg>

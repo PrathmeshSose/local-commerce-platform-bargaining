@@ -15,8 +15,9 @@
 .footer-title {
   font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  /* Titles are written in title case in the markup ("Platform & Admin"), so
+     the uppercase transform was rewriting them to "PLATFORM & ADMIN". */
+  letter-spacing: 0.02em;
   margin-bottom: 1rem;
   color: var(--text-main);
 }
@@ -63,7 +64,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--secondary);
   background: var(--secondary-light);

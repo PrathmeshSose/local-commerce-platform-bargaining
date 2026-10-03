@@ -35,7 +35,7 @@ export const Modal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 className="modal-title">{title}</h3>
+          <h2 className="modal-title">{title}</h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
             <X size={20} />
           </button>

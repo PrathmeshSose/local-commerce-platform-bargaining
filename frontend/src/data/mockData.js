@@ -63,6 +63,23 @@ export const MOCK_SELLERS = [
   }
 ];
 
+/**
+ * Catalog product images — sources & licenses (Phase 1 image audit, verified 2026-10-02)
+ *
+ * Every URL below was HTTP-checked (200, image/jpeg) AND visually inspected so each
+ * photo genuinely depicts the product it is attached to.
+ *
+ * - images.unsplash.com/photo-* → Unsplash License (free commercial use, no attribution
+ *   required). Note: plus.unsplash.com/premium_photo-* images are intentionally excluded.
+ * - live.staticflickr.com/*    → CC-licensed, verified on each photo's Flickr page:
+ *     402173682  CC BY 2.0     4353388318 CC BY 2.0      13467250735 CC BY 2.0
+ *     3379995693 CC BY 2.0     3380813350 CC BY 2.0      54594292162 CC BY 2.0
+ *     12690958284 CC BY 2.0    110696323  CC BY-SA 2.0
+ * - cdn.stocksnap.io/6CA109EECC → CC0 (public domain dedication).
+ *
+ * Flickr CC BY / CC BY-SA images require attribution in a credit line; adding an
+ * on-page attribution UI is recommended follow-up (flagged in the Phase 1 report).
+ */
 export const MOCK_PRODUCTS = [
   {
     id: 'prod_1',
@@ -78,9 +95,9 @@ export const MOCK_PRODUCTS = [
     distanceKm: 1.2,
     images: [
       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1759647020668-648cd90ddce4?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Hand-upholstered 3-seater sofa in premium emerald-green velvet with solid wood frame and high-resilience foam cushions. Built for Indian living rooms — sturdy legs, detachable washable covers, 5-year frame warranty.',
+    description: 'A rich emerald-green three-seater that anchors the living room without asking you to give up comfort. The velvet covering is hand-upholstered over a solid wood frame, and the high-resilience foam cushions stay plump through years of daily family use. The sturdy legs sit firm on Indian floors.\n\n• Premium emerald-green velvet, hand-upholstered\n• Solid wood frame backed by a 5-year warranty\n• High-resilience foam cushions that hold their shape\n• Detachable, washable covers for easy upkeep',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -98,10 +115,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sharma Furniture Gallery',
     distanceKm: 2.8,
     images: [
-      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1768253843445-49fa5f4a801f?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1646061142491-fc141798ba14?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'King size engineered-wood bed with hydraulic box storage, soft-close headboard panel and walnut laminate. Fits standard Indian mattresses (72x78 in) — free installation by our Palasia team.',
+    description: 'The Aarav is a king-size engineered-wood bed that does three jobs in one piece: a comfortable bed, a roomy storage box and a smart headboard. Lift the mattress base on its hydraulics to reach space for extra bedding, suitcases and seasonal clothes, and let the soft-close headboard panel settle quietly at night. The warm walnut laminate blends easily into modern and traditional bedrooms alike.\n\n• Hydraulic lift-up box storage under the mattress\n• Soft-close headboard panel\n• Fits standard Indian king mattresses (72 x 78 in)\n• Free installation by the Palasia team',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -119,9 +136,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sapna Sangeeta Home Interiors',
     distanceKm: 4.1,
     images: [
-      'https://live.staticflickr.com/152/402173682_30e4b60f13_b.jpg'
+      'https://live.staticflickr.com/152/402173682_30e4b60f13_b.jpg',
+      'https://images.unsplash.com/photo-1758977403395-5ae10579231f?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Set of 2 Scandinavian dining chairs with woven fabric seats, tapered solid-wood legs and ergonomic curved backrest. Wipe-clean upholstery that handles everyday family dinners with ease.',
+    description: 'A pair of clean-lined Scandinavian chairs that lift an ordinary dining table. The curved backrest supports your spine through long, leisurely dinners, while the woven seat feels warmer under you than plain wood. Tapered solid-wood legs keep the silhouette light, and the wipe-clean upholstery shrugs off everyday spills — practical for homes with children.\n\n• Supplied as a set of two chairs\n• Ergonomic curved backrest\n• Wipe-clean woven upholstery\n• Tapered solid-wood legs',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -139,9 +157,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Vijay Nagar Furniture House',
     distanceKm: 1.2,
     images: [
-      'https://live.staticflickr.com/4049/4353388318_09acf5d832_b.jpg'
+      'https://live.staticflickr.com/4049/4353388318_09acf5d832_b.jpg',
+      'https://images.unsplash.com/photo-1777513538143-8525eb3943f6?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Solid Sheesham (Indian rosewood) coffee table with hand-carved lattice top and lower magazine shelf. Natural grain varies piece to piece — every table is one of a kind.',
+    description: 'Hand-carved in solid Sheesham, this coffee table brings traditional Indian craft into a contemporary living room. The lattice top is worked by hand, so the grain and pattern of every table are slightly different — yours will be one of a kind. A lower shelf keeps magazines and living-room essentials within reach while leaving the top clear.\n\n• Solid Sheesham (Indian rosewood) construction\n• Hand-carved lattice top\n• Lower shelf for magazines and essentials',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -159,9 +178,9 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sharma Furniture Gallery',
     distanceKm: 2.8,
     images: [
-      'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1748721566880-9e8636f3e5c6?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Breathable mesh-back executive chair with adjustable lumbar support, 120° tilt lock, height-adjustable arms and 360° silent castors. Supports up to 120 kg — ideal for work-from-home setups.',
+    description: 'Built for the long workday, at the office or in a work-from-home setup, the Denver keeps your back supported and your body cool. The breathable mesh back lets air circulate through hours at the desk, and the adjustable lumbar pad sits exactly where your lower back needs it. Recline to 120° and lock it, raise the armrests to keyboard height, then glide across the floor on silent castors.\n\n• Breathable mesh back with adjustable lumbar support\n• 120° tilt lock and height-adjustable arms\n• 360° silent castors\n• Supports up to 120 kg',
     pickupAvailable: true,
     deliveryAvailable: false,
     bargainable: true
@@ -179,9 +198,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sapna Sangeeta Home Interiors',
     distanceKm: 4.1,
     images: [
-      'https://images.unsplash.com/photo-1558997519-83ea9252edf8?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1558997519-83ea9252edf8?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1722349674028-a148f4364e43?w=600&auto=format&fit=crop&q=80'
     ],
-    description: '2-door teak-finish wardrobe with full-height mirror, two hanging rails, four drawers and anti-tip wall anchor. Generous 6 ft height stores a full family wardrobe comfortably.',
+    description: 'The Vaastu keeps a whole family wardrobe in one tidy place. Two roomy doors open onto a pair of hanging rails for shirts, kurtas and sarees, while four drawers swallow folded clothes, linen and accessories. A full-height mirror on the door saves hunting for one elsewhere, and the anti-tip wall anchor keeps the tall teak-finish unit steady.\n\n• Full-height mirror on the door\n• Two hanging rails and four drawers\n• 6 ft height holds a full family wardrobe\n• Anti-tip wall anchor for safety',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -199,9 +219,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Vijay Nagar Furniture House',
     distanceKm: 1.2,
     images: [
-      'https://live.staticflickr.com/7140/13467250735_3b386908ef_b.jpg'
+      'https://live.staticflickr.com/7140/13467250735_3b386908ef_b.jpg',
+      'https://images.unsplash.com/photo-1759722665621-7ae933accb69?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Spacious L-shape sectional in light-grey woven fabric with reversible chaise, deep seating and removable cushion covers. Modular base ships in two pieces through narrow flats and stairwells.',
+    description: 'The Oslo L-shape sectional turns an unused corner into the most-seated place in the house. Deep cushions invite you to stretch out along the chaise, and the chaise itself moves to either side to match your room. The light-grey woven fabric sits quietly with almost any colour scheme, and removable covers keep the sectional looking fresh.\n\n• Reversible chaise — left or right configuration\n• Deep, lounge-style seating\n• Removable cushion covers\n• Modular base ships in two pieces for narrow flats and stairwells',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -222,7 +243,7 @@ export const MOCK_PRODUCTS = [
       'https://live.staticflickr.com/3562/3379995693_33a488895b_b.jpg',
       'https://live.staticflickr.com/3449/3380813350_c78483fda9_b.jpg'
     ],
-    description: '6-seater Sheesham dining set — 1.6 m rectangular table with six high-back chairs in warm honey polish. Termite-treated hardwood, seats six comfortably for family gatherings.',
+    description: 'Festivals, Sunday lunches and everyday homework all sit comfortably on this table. The Rajasthan set pairs a 1.6 m rectangular Sheesham table with six high-back chairs, finished in a warm honey polish that shows off the wood grain. The hardwood is termite-treated, so the set stays solid through years of family gatherings.\n\n• Seats six comfortably\n• 1.6 m rectangular Sheesham table with six high-back chairs\n• Termite-treated hardwood\n• Warm honey polish',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -242,7 +263,7 @@ export const MOCK_PRODUCTS = [
     images: [
       'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Compact oak-finish study desk with overhead bookshelf, cable management cutout and a wide drawer. Designed for students — fits comfortably in a 8x10 ft bedroom.',
+    description: 'Everything a student needs sits within easy reach. The overhead bookshelf keeps textbooks and reference copies above eye level, the wide drawer swallows notebooks and stationery, and the cable cutout stops a laptop or lamp lead from tangling across the desk. The compact oak-finish body sits comfortably in an 8 x 10 ft bedroom without crowding the bed.\n\n• Overhead bookshelf for textbooks and reference books\n• Wide stationery drawer\n• Cable management cutout\n• Compact footprint fits an 8 x 10 ft bedroom',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -260,9 +281,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Vijay Nagar Furniture House',
     distanceKm: 1.2,
     images: [
-      'https://live.staticflickr.com/65535/54594292162_82324edcf5_b.jpg'
+      'https://live.staticflickr.com/65535/54594292162_82324edcf5_b.jpg',
+      'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Five-shelf engineered-wood bookshelf with warm accent lighting, anti-tip wall bracket and closed cabinet base. Holds around 150 books or a mix of decor and collectibles.',
+    description: 'Five engineered-wood shelves take an empty wall and turn it into a small library. Warm accent lighting shows off books, decor and collectibles in the evening, while the closed cabinet base at the bottom hides whatever you would rather not display. The anti-tip wall bracket keeps the tall unit secure — a sensible detail in homes with children.\n\n• Five spacious shelves — holds around 150 books\n• Warm accent lighting\n• Closed cabinet base for hidden storage\n• Anti-tip wall bracket supplied',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -282,7 +304,7 @@ export const MOCK_PRODUCTS = [
     images: [
       'https://live.staticflickr.com/7416/12690958284_9c45ce2eda_b.jpg'
     ],
-    description: 'Wenge-finish TV console with brass-plate detailing, two closed cabinets and open cable slots for set-top boxes and soundbars. Supports TVs up to 70 inches and 60 kg load.',
+    description: 'A dark wenge-finish console that makes the television wall look considered rather than temporary. Brass-plate detailing lifts the finish, two closed cabinets hide remotes, cables and games, and open slots let the set-top box and soundbar breathe while keeping leads tidy. It holds televisions up to 70 inches and a 60 kg load.\n\n• Fits TVs up to 70 inches (60 kg load)\n• Two closed cabinets for clutter\n• Open cable slots for set-top boxes and soundbars\n• Brass-plate detailing on a wenge finish',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -300,9 +322,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sharma Furniture Gallery',
     distanceKm: 2.8,
     images: [
-      'https://live.staticflickr.com/44/110696323_07ec13b121_b.jpg'
+      'https://live.staticflickr.com/44/110696323_07ec13b121_b.jpg',
+      'https://images.unsplash.com/photo-1786396798387-f1eb58ab4d15?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Space-saving 4-tier shoe rack with ventilated cubbies and a closed bottom cabinet for bags or polish. Holds 16–20 pairs and keeps apartment entrances clutter-free.',
+    description: 'No more morning scramble for matching shoes. Four ventilated tiers hold 16 to 20 pairs at a height you can scan in a second, and the closed cabinet at the bottom takes bags, shoe polish and the pair you would rather not see. The slim profile suits the narrow entrances of city apartments.\n\n• Four ventilated tiers for 16 to 20 pairs\n• Closed bottom cabinet for bags and polish\n• Slim, space-saving profile for apartment entrances',
     pickupAvailable: true,
     deliveryAvailable: false,
     bargainable: true
@@ -320,9 +343,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Vijay Nagar Furniture House',
     distanceKm: 1.2,
     images: [
-      'https://cdn.stocksnap.io/img-thumbs/960w/6CA109EECC.jpg'
+      'https://cdn.stocksnap.io/img-thumbs/960w/6CA109EECC.jpg',
+      'https://images.unsplash.com/photo-1783529358183-0803db278660?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Weather-resistant powder-coated steel patio set — table, four chairs and a UV-protected umbrella. Quick-dry mesh seats survive monsoons on balconies, terraces and bungalow lawns.',
+    description: 'Morning chai on the balcony, long Sunday breakfasts on the terrace — this four-seater set handles both. The powder-coated steel frame resists rust and rain, the quick-dry mesh seats drain soon after rainfall, and the UV-protected umbrella keeps the harsh afternoon sun off the table — one complete set for open-air dining.\n\n• Table, four chairs and a UV-protected umbrella\n• Weather-resistant powder-coated steel frame\n• Quick-dry mesh seating\n• Suits balconies, terraces and bungalow lawns',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -340,9 +364,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sapna Sangeeta Home Interiors',
     distanceKm: 4.1,
     images: [
-      'https://images.unsplash.com/photo-1600166898405-da9535204843?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1600166898405-da9535204843?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1778088442792-29c430a4c93f?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Handwoven jute-blend rug with subtle checked texture in natural earth tones. Reversible, anti-skid backing safe for tiles and wooden floors — brightens living and bedroom spaces.',
+    description: 'A handwoven jute-blend rug in quiet earth tones that warms up cold tile without demanding attention. The subtle checked texture adds depth underfoot, and because the rug is reversible you can simply turn it over when one side begins to show wear. An anti-skid backing keeps it steady on tiles and wooden floors, so it works equally well in the living room and the bedroom.\n\n• Handwoven jute blend, 5 x 7 ft\n• Reversible for longer wear\n• Anti-skid backing safe on tiles and wood\n• Natural earth tones that suit any room',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: true
@@ -360,9 +385,10 @@ export const MOCK_PRODUCTS = [
     sellerName: 'Sapna Sangeeta Home Interiors',
     distanceKm: 4.1,
     images: [
-      'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1553114552-c4ece3a33c93?w=600&auto=format&fit=crop&q=80'
     ],
-    description: 'Pack of 2 plush throw pillows with 100% cotton covers and hypoallergenic microfibre fill. Hidden zip, machine-washable covers — refresh sofas and beds in seconds.',
+    description: 'Two soft cushions that refresh a room in seconds. Each pillow pairs a 100% cotton cover with a plush, hypoallergenic microfibre fill, so they stay comfortable behind a tired back and kind to sensitive skin. The hidden zip lets you strip the covers straight into the washing machine, and since they come as a pair, one can live on the sofa and one on the bed.\n\n• Pack of two cushions\n• 100% cotton covers with a hidden zip\n• Hypoallergenic microfibre fill\n• Machine-washable covers',
     pickupAvailable: true,
     deliveryAvailable: true,
     bargainable: false

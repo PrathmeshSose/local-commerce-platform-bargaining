@@ -16,17 +16,21 @@
   display: inline-flex;
   padding: 0.25rem 0.75rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
+  /* Eyebrow label: was 0.72rem (~11.5px) — bumped to the 14px text-sm token */
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   border: 1px solid rgba(245, 158, 11, 0.3);
   margin-bottom: 0.75rem;
 }
 
+/* One hero per app — sized as an editorial headline, not a billboard. */
 .hero-heading {
-  font-size: 2.5rem;
-  letter-spacing: -0.02em;
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   margin-bottom: 0.75rem;
-  line-height: 1.2;
+  line-height: 1.22;
 }
 
 .text-gradient {
@@ -36,11 +40,11 @@
 }
 
 .hero-subtext {
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: 1.25rem;
-  max-width: 680px;
+  max-width: 640px;
 }
 
 .hero-cta-group {
@@ -106,6 +110,19 @@
 .section-header {
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
+  /* The header stacks a two-line text block (title row + description) against
+     a one-line link. Centering dropped "View All Catalog" to mid-block, so the
+     link now starts level with the "Furniture Near You" title. */
+  align-items: flex-start;
+}
+
+/* Was used in markup with no rule at all, so it inherited the browser's
+   1.5em/700 h2 default — one full step below the page heading. */
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
 }
 
 /* ------ Room / category chips (horizontal scroll strip on mobile) ------ */
@@ -174,7 +191,7 @@
 
 @media (max-width: 768px) {
   .hero-heading {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
   .hero-features-strip {
     grid-template-columns: 1fr;
@@ -186,10 +203,10 @@
     padding: 1.5rem 0 1.5rem;
   }
   .hero-heading {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
   .hero-subtext {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
   .hero-cta-group {
     width: 100%;

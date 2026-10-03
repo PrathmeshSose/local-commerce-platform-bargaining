@@ -15,7 +15,13 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
+  /* Base font size must stay at the 16px design-system reference. This file is
+     Vite demo boilerplate, but its :root `font` shorthand also sets the html
+     font-size, and every size in src/styles/index.css is authored in rem.
+     Running the root at 18px silently inflated the whole UI by 12.5% on
+     desktop (headings, product titles, prices, buttons), which is why the
+     catalog read as "loud" while the mobile breakpoints looked normal. */
+  font: 16px/1.5 var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
@@ -52,6 +58,20 @@
 
 body {
   margin: 0;
+}
+
+/* Visually hidden, still announced: used for headings that exist purely for
+   document structure (e.g. the product-grid section heading on /products). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 #root {
