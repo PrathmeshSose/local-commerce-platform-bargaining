@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Outdoor furniture photo placeholder">
+  <rect width="600" height="600" fill="#f0fdf4"/>
+  <g stroke="#153e5c" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="176" r="42" fill="#ffedd5" stroke="#f97316"/>
+    <rect x="150" y="300" width="54" height="126" rx="18" fill="#d1fae5"/>
+    <rect x="260" y="300" width="54" height="126" rx="18" fill="#d1fae5"/>
+    <path d="M177 300v-56a16 16 0 0 1 32 0v56M287 300v-56a16 16 0 0 1 32 0v56"/>
+    <path d="M148 356h118M258 356h58"/>
+    <path d="M170 426v28M294 426v28"/>
+  </g>
+</svg>

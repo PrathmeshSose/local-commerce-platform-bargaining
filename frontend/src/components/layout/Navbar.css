@@ -29,13 +29,13 @@
 }
 
 .user-display-name {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-main);
 }
 
 .user-role-badge {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--accent);
 }
@@ -74,7 +74,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-main);
   transition: background var(--transition-fast);
@@ -145,10 +145,12 @@
 }
 
 .brand-subtitle {
-  font-size: 0.65rem;
+  /* Was 0.65rem (10px) — below the readable minimum for a 12px floor */
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 600;
-  text-transform: uppercase;
+  /* No uppercase transform: it rewrote the authored capitalisation to
+     "FURNITURE & BARGAINING". The markup already writes proper title case. */
   letter-spacing: 0.05em;
 }
 
@@ -157,7 +159,12 @@
   border: 1px solid var(--border);
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-full);
-  max-width: 250px;
+  /* Was 250px, which clipped "Vijay Nagar, Indore" (~300px of content) with
+     an ellipsis even on wide screens. 360px lets the default location render
+     in full while still bounding a very long address; min-width:0 lets the
+     flex row squeeze the pill on tighter widths instead of overflowing. */
+  max-width: 360px;
+  min-width: 0;
 }
 
 .location-text-group {
@@ -167,14 +174,14 @@
 }
 
 .location-title {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .location-val {
-  font-size: 0.775rem;
+  font-size: 0.75rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -189,6 +196,13 @@
   padding: 0.15rem 0.35rem;
   font-size: 0.75rem;
   outline: none;
+}
+
+/* The base rule kills the UA focus ring, so keyboard users need an explicit
+   indicator — same accent ring as the buttons. */
+.radius-dropdown:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .nav-search-bar {
@@ -317,9 +331,11 @@
   }
 }
 
-/* Tablet portrait and below: search bar moves to its own full-width row
-   (it is never removed — search stays available everywhere). The location
-   text shrinks to the pin + radius selector so brand + actions fit one row. */
+/* Tablet portrait and below: the search bar moves to its own full-width row
+   (it is never removed — search stays available everywhere). The address stays
+   visible as well: it no longer competes with the search bar for width, and the
+   pill is allowed to wrap so the radius selector drops below the address
+   instead of pushing the row wider than the viewport. */
 @media (max-width: 840px) {
   .navbar-main .container {
     flex-wrap: wrap;
@@ -332,19 +348,22 @@
     max-width: none;
   }
 
-  .location-text-group {
-    display: none;
-  }
-
   .location-pill {
     max-width: none;
     padding: 0.35rem 0.6rem;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 }
 
 @media (max-width: 680px) {
+  /* The address/radius no longer disappears on phones: it takes its own
+     full-width row after the search bar, so brand + account actions keep the
+     first row and nothing has to be squeezed, hidden or truncated to fit. */
   .location-pill {
-    display: none;
+    order: 6;
+    flex: 1 1 100%;
+    padding: 0.4rem 0.75rem;
   }
   .hide-on-mobile {
     display: none !important;
@@ -359,7 +378,7 @@
     gap: 0.5rem;
   }
   .brand-title {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
   }
   .brand-subtitle {
     display: none;

@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { EmptyState } from '../../components/common/Loader';
+import { EmptyState, Loader } from '../../components/common/Loader';
 import { Package, MapPin, Store } from 'lucide-react';
 import { formatINR, formatDateIN } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 import './Orders.css';
 
 export const Orders = () => {
-  // Orders created at checkout — shared AuthContext state (no demo orders)
-  const { orders } = useAuth();
+  // Order history as MongoDB returns it — shared AuthContext state (no demo orders)
+  const { orders, ordersLoading, ordersError } = useAuth();
 
   return (
     <div className="orders-page container mt-6">
@@ -20,7 +20,13 @@ export const Orders = () => {
         <p className="text-sm text-muted">Track purchases and pickup statuses across neighborhood stores</p>
       </div>
 
-      {orders.length === 0 ? (
+      {ordersLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader size="lg" message="Loading your orders..." />
+        </div>
+      ) : ordersError ? (
+        <p className="text-sm text-danger" role="alert">{ordersError}</p>
+      ) : orders.length === 0 ? (
         <EmptyState
           title="No orders yet"
           message="Orders you complete at checkout will appear here with their pickup details and status."
@@ -42,17 +48,23 @@ export const Orders = () => {
                     <Package size={20} className="text-accent" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm">Order #{order.id}</h4>
+                    <h2 className="font-bold text-sm">Order #{order.orderNumber || order.id}</h2>
                     <span className="text-xs text-muted">Ordered on {formatDateIN(order.date)}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Badge
-                    variant={order.status === 'Delivered' ? 'success' : 'info'}
+                    variant={
+                      order.statusLabel === 'Completed' || order.statusLabel === 'Delivered'
+                        ? 'success'
+                        : order.statusLabel === 'Cancelled'
+                          ? 'danger'
+                          : 'info'
+                    }
                     size="sm"
                   >
-                    {order.status}
+                    {order.statusLabel || order.status}
                   </Badge>
                   <span className="text-xs text-muted font-medium">{order.paymentStatus}</span>
                 </div>

@@ -3,46 +3,55 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import { Store, Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Store, Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, ShoppingBag, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
 export const Login = () => {
-  const { login } = useAuth();
+  // `authError` carries cross-page session messages (e.g. "your session has
+  // expired") set by AuthContext when the backend rejected the stored JWT.
+  const { login, authLoading, authError } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialRole = searchParams.get('role') === 'seller' ? 'seller' : 'customer';
-  // Honor the "next" redirect written by ProtectedRoute (safe, same-origin path only)
   const nextPath = searchParams.get('next');
+  const isDev = import.meta.env.DEV;
+  
   const [selectedRole, setSelectedRole] = useState(initialRole);
   const [email, setEmail] = useState(
-    initialRole === 'seller' ? 'seller@neardeal.local' : 'customer@neardeal.local'
+    isDev ? (initialRole === 'seller' ? 'seller@neardeal.com' : 'customer@neardeal.com') : ''
   );
-  const [password, setPassword] = useState('••••••••');
+  // Demo accounts use password123 — prefilled so the login card works
+  // straight out of the box in development.
+  const [password, setPassword] = useState(isDev ? 'password123' : '');
   const [error, setError] = useState('');
 
   const handleRoleToggle = (role) => {
     setSelectedRole(role);
-    setEmail(role === 'seller' ? 'seller@neardeal.local' : 'customer@neardeal.local');
+    setEmail(isDev ? (role === 'seller' ? 'seller@neardeal.com' : 'customer@neardeal.com') : '');
+    setPassword(isDev ? 'password123' : '');
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       setError('Please provide a valid email address.');
       return;
     }
-    login(selectedRole, email);
-    const defaultTarget = selectedRole === 'seller' ? '/seller' : '/';
-    // Customer/seller logins cannot enter the admin area — /admin targets are
-    // ignored here (admin access goes through /admin/login) to avoid a dead loop.
-    const isAdminTarget = nextPath === '/admin' || (nextPath || '').startsWith('/admin/');
-    const target =
-      nextPath && nextPath.startsWith('/') && !nextPath.startsWith('//') && !isAdminTarget
-        ? nextPath
-        : defaultTarget;
-    navigate(target, { replace: true });
+    setError('');
+    try {
+      await login(selectedRole, email, password);
+      const defaultTarget = selectedRole === 'seller' ? '/seller' : '/';
+      const isAdminTarget = nextPath === '/admin' || (nextPath || '').startsWith('/admin/');
+      const target =
+        nextPath && nextPath.startsWith('/') && !nextPath.startsWith('//') && !isAdminTarget
+          ? nextPath
+          : defaultTarget;
+      navigate(target, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -56,9 +65,9 @@ export const Login = () => {
               <ShoppingBag size={24} className="text-accent" />
             )}
           </div>
-          <h2 className="text-xl font-bold">
+          <h1 className="text-xl font-bold">
             {selectedRole === 'seller' ? 'Seller Portal Login' : 'Customer Sign In'}
-          </h2>
+          </h1>
           <p className="text-xs text-muted">
             {selectedRole === 'seller'
               ? 'Access your neighborhood shop inventory & bargain queue'
@@ -66,9 +75,20 @@ export const Login = () => {
           </p>
         </div>
 
-        {error && (
+        {/* Demo credentials hint — visible only when pre-filled email is unchanged and in DEV mode */}
+        {isDev && (email === 'customer@neardeal.com' || email === 'seller@neardeal.com') && !error && !authError && (
+          <div className="auth-demo-hint flex items-start gap-2 mb-3 p-2 rounded text-xs">
+            <ShieldCheck size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
+            <span>
+              <strong>Demo account</strong> · email pre-filled · password:{' '}
+              <code className="auth-demo-code">password123</code>
+            </span>
+          </div>
+        )}
+
+        {(error || authError) && (
           <div className="auth-error-banner flex items-center gap-2 mb-4 p-2 bg-danger-light text-danger rounded text-xs">
-            <AlertCircle size={15} /> {error}
+            <AlertCircle size={15} /> {error || authError}
           </div>
         )}
 
@@ -111,8 +131,15 @@ export const Login = () => {
             required
           />
 
-          <Button variant="primary" size="lg" type="submit" className="w-full mt-2" icon={ArrowRight}>
-            Log In as {selectedRole === 'seller' ? 'Merchant' : 'Customer'}
+          <Button
+            variant="primary"
+            size="lg"
+            type="submit"
+            className="w-full mt-2"
+            icon={authLoading ? Loader2 : ArrowRight}
+            disabled={authLoading}
+          >
+            {authLoading ? 'Signing in...' : `Log In as ${selectedRole === 'seller' ? 'Merchant' : 'Customer'}`}
           </Button>
 
           <p className="text-center text-xs text-muted mt-3">
@@ -131,7 +158,7 @@ export const Login = () => {
 };
 
 export const Register = () => {
-  const { register } = useAuth();
+  const { register, authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialRole = searchParams.get('role') === 'seller' ? 'seller' : 'customer';
@@ -139,16 +166,23 @@ export const Register = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register(role, {
-      name: fullName,
-      email: email,
-      storeName: role === 'seller' ? `${fullName}'s Store` : undefined
-    });
-    if (role === 'seller') navigate('/seller');
-    else navigate('/');
+    setError('');
+    try {
+      await register(role, {
+        name: fullName,
+        email: email,
+        password: password,
+        storeName: role === 'seller' ? `${fullName}'s Store` : undefined
+      });
+      if (role === 'seller') navigate('/seller');
+      else navigate('/');
+    } catch (err) {
+      setError(err.message || 'Registration failed.');
+    }
   };
 
   return (
@@ -158,13 +192,19 @@ export const Register = () => {
           <div className="auth-icon-circle mx-auto mb-2">
             <Store size={24} className="text-accent" />
           </div>
-          <h2 className="text-xl font-bold">Join the Local Marketplace</h2>
+          <h1 className="text-xl font-bold">Join the Local Marketplace</h1>
           <p className="text-xs text-muted">
             {role === 'seller'
               ? 'Onboard your local store and start taking smart bargain offers'
               : 'Create an account to start shopping and bargaining locally'}
           </p>
         </div>
+
+        {error && (
+          <div className="auth-error-banner flex items-center gap-2 mb-4 p-2 bg-danger-light text-danger rounded text-xs">
+            <AlertCircle size={15} /> {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form flex flex-col gap-4">
           <div className="role-selector-group">
@@ -208,10 +248,11 @@ export const Register = () => {
             label="Create Password"
             type="password"
             icon={Lock}
-            placeholder="Minimum 8 characters"
+            placeholder="Minimum 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
           />
 
           {role === 'seller' && (
@@ -223,8 +264,15 @@ export const Register = () => {
             </div>
           )}
 
-          <Button variant="primary" size="lg" type="submit" className="w-full mt-2" icon={ArrowRight}>
-            Complete Registration
+          <Button
+            variant="primary"
+            size="lg"
+            type="submit"
+            className="w-full mt-2"
+            icon={authLoading ? Loader2 : ArrowRight}
+            disabled={authLoading}
+          >
+            {authLoading ? 'Registering...' : 'Complete Registration'}
           </Button>
 
           <p className="text-center text-xs text-muted mt-3">
@@ -240,27 +288,30 @@ export const Register = () => {
 };
 
 export const AdminLogin = () => {
-  const { login } = useAuth();
+  const { login, authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // Honor the "next" redirect written by ProtectedRoute (safe, same-origin path only)
   const nextPath = searchParams.get('next');
-  const [email, setEmail] = useState('admin@neardeal.local');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('admin@neardeal.com');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate admin credentials
-    if (email === 'admin@neardeal.local' || email === 'ops@neardeal.in') {
-      login('admin', email, { name: 'Platform Moderator' });
+    setError('');
+    // Admin authentication goes through the real backend only — no bypass.
+    try {
+      await login('admin', email, password);
       const target =
         nextPath && nextPath.startsWith('/') && !nextPath.startsWith('//')
           ? nextPath
           : '/admin';
       navigate(target, { replace: true });
-    } else {
-      setError('Invalid admin credentials. Access restricted to authorized personnel.');
+    } catch (err) {
+      // Backend rejected the credentials (e.g. no ADMIN account exists yet).
+      // Never navigate to /admin without a token: ProtectedRoute would just
+      // bounce the visitor back here, making it look like login does nothing.
+      setError(err.message || 'Invalid admin credentials.');
     }
   };
 
@@ -271,7 +322,7 @@ export const AdminLogin = () => {
           <div className="auth-icon-circle mx-auto mb-2" style={{ background: 'var(--secondary-light)' }}>
             <ShieldCheck size={24} style={{ color: 'var(--secondary)' }} />
           </div>
-          <h2 className="text-xl font-bold">Platform Governance Portal</h2>
+          <h1 className="text-xl font-bold">Platform Governance Portal</h1>
           <p className="text-xs text-muted">Administrative Access & Platform Oversight</p>
         </div>
 
@@ -306,8 +357,15 @@ export const AdminLogin = () => {
             required
           />
 
-          <Button variant="secondary" size="lg" type="submit" className="w-full mt-2" icon={ArrowRight}>
-            Authenticate Administrative Access
+          <Button
+            variant="secondary"
+            size="lg"
+            type="submit"
+            className="w-full mt-2"
+            icon={authLoading ? Loader2 : ArrowRight}
+            disabled={authLoading}
+          >
+            {authLoading ? 'Authenticating...' : 'Authenticate Administrative Access'}
           </Button>
 
           <p className="text-center text-xs text-muted mt-3">
@@ -320,4 +378,3 @@ export const AdminLogin = () => {
     </div>
   );
 };
-

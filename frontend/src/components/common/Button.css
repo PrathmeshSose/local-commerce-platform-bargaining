@@ -29,20 +29,21 @@
   }
 }
 
-/* Sizes */
+/* Sizes — the three steps sit on the type scale (14px / 14px / 16px);
+   sm and md stay distinguishable by padding rather than a 1px size gap. */
 .btn-sm {
   padding: 0.35rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 .btn-md {
   padding: 0.55rem 1.15rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
 }
 
 .btn-lg {
   padding: 0.75rem 1.5rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
   border-radius: var(--radius-lg);
 }
 
@@ -77,13 +78,23 @@
 }
 
 .btn-outline {
-  background: transparent;
-  border-color: var(--border);
+  /* A fully transparent fill + #e2e8f0 hairline read as "missing" on a white
+     card. A subtle fill plus a stronger border makes the boundary legible
+     while keeping the label's contrast (near-black on #f1f5f9). */
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
   color: var(--text-main);
 }
 .btn-outline:hover {
-  background: var(--bg-muted);
+  background: var(--bg-surface);
   border-color: var(--border-focus);
+}
+
+/* Explicit focus ring so keyboard users keep a visible indicator on every
+   variant (matches the focus style already used on the listing filters). */
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .btn-ghost {

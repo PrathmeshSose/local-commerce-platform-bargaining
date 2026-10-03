@@ -34,13 +34,24 @@
   border-color: var(--accent);
 }
 
-/* ------ Catalog header (title + description) ------ */
+/* ------ Catalog header (title + description) ------
+   Page heading sits one clear step below the hero/home heading and two above
+   the product title — moderate size, 600 weight, no display-scale type. */
 .listing-header {
   margin-bottom: 2rem;
 }
 
 .listing-header h1 {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.listing-header p {
+  max-width: 64ch;
+  line-height: 1.55;
 }
 
 /* ------ Two-column layout: sidebar | main ------ */
@@ -130,11 +141,12 @@
   cursor: pointer;
 }
 
-/* Category pill list */
+/* Category pill list — each row is its own tap target, so the rows need a
+   full 8px between them rather than touching each other. */
 .category-pill-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .category-filter-btn {
@@ -186,6 +198,23 @@
   font-size: 0.85rem;
 }
 
+/* Explicit sizing: the UA default box varies by browser and sat off-centre
+   against the 12px label text. 1rem square, accent-coloured, aligned to the
+   label's text baseline; the wrapping <label> keeps the whole row clickable. */
+.bargain-toggle-label input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.bargain-toggle-label input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ------ Main area ------ */
 .listing-main {
   min-width: 0;
@@ -223,10 +252,13 @@
   outline-offset: 1px;
 }
 
-/* ------ 4-column product grid ------ */
+/* ------ Desktop product grid ------
+   3 columns (not 4) so each card is ~280px wide: wide enough for the image
+   area to read as a real furniture listing instead of a thumbnail, while
+   still keeping 3+ products above the fold at 1280px. */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 

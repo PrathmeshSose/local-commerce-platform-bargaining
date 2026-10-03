@@ -61,9 +61,30 @@ export const AppRoutes = () => {
         <Route path="/products" element={<ProductListing />} />
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/orders" element={<Orders />} />
+        <Route
+          path="/cart"
+          element={<Cart />}
+        />
+        {/* Account-scoped pages: a visitor (or a dead token) must bounce to
+            login with a real session message — never render "No orders yet"
+            to someone who simply is not signed in. */}
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
         {/* Customer bargaining queries (concept A/B — never orders) */}
-        <Route path="/negotiations" element={<CustomerNegotiations />} />
+        <Route
+          path="/negotiations"
+          element={
+            <ProtectedRoute>
+              <CustomerNegotiations />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Seller Portal Routes (Protected) */}
         <Route

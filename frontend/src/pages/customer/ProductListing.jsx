@@ -3,28 +3,27 @@ import { useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../../components/common/ProductCard';
 import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
-import { EmptyState } from '../../components/common/Loader';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../data/mockData';
-import { useAuth } from '../../context/AuthContext';
+import { EmptyState, Loader } from '../../components/common/Loader';
+import { MOCK_CATEGORIES } from '../../data/mockData';
+import { useAuth, RADIUS_OPTIONS } from '../../context/AuthContext';
+import { useProducts } from '../../hooks/useProducts';
 import { formatDistance } from '../../utils/formatters';
-import { Search, SlidersHorizontal, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, Tag, RefreshCw } from 'lucide-react';
 import './ProductListing.css';
-const priceValues = MOCK_PRODUCTS.map(p => p.price);
-const priceMin = Math.min(...priceValues);
-const priceMax = Math.max(...priceValues);
+
 export const ProductListing = () => {
   const [searchParams] = useSearchParams();
-  // Existing auth context values
   const { maxRadiusKm, setMaxRadiusKm } = useAuth();
-  // New state for price range filter (min and max price in INR)
+  const { products, loading, error, refetch } = useProducts();
+
+  const priceValues = products.length ? products.map((p) => p.price) : [1000, 100000];
+  const priceMin = Math.min(...priceValues);
+  const priceMax = Math.max(...priceValues);
+
   const [minPrice, setMinPrice] = useState(priceMin);
   const [maxPrice, setMaxPrice] = useState(priceMax);
-  // New state for seller rating filter (minimum rating)
   const [minRating, setMinRating] = useState(0);
-  // New state for sorting option
   const [sortOption, setSortOption] = useState('relevance');
-
 
   const [selectedCategory, setSelectedCategory] = useState(
     MOCK_CATEGORIES.includes(searchParams.get('category')) ? searchParams.get('category') : MOCK_CATEGORIES[0]
@@ -33,11 +32,8 @@ export const ProductListing = () => {
   const categoryParam = searchParams.get('category') || '';
   const [searchQuery, setSearchQuery] = useState(searchParam);
   const [onlyBargainable, setOnlyBargainable] = useState(false);
-  // Collapsible filters on tablet/mobile widths (see ProductListing.css)
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Re-sync when a new ?search= or ?category= arrives from navigation while
-  // this page is already mounted (React's render-phase state adjustment).
   const [lastSearchParam, setLastSearchParam] = useState(searchParam);
   if (searchParam !== lastSearchParam) {
     setLastSearchParam(searchParam);
@@ -49,26 +45,28 @@ export const ProductListing = () => {
     setSelectedCategory(MOCK_CATEGORIES.includes(categoryParam) ? categoryParam : MOCK_CATEGORIES[0]);
   }
 
-
-
   const categories = MOCK_CATEGORIES;
   const ALL_CATEGORIES = MOCK_CATEGORIES[0];
-  // Determine price bounds from mock data for slider defaults
 
+  // The slider walks the shared radius options by index so it can only ever
+  // produce a value the navbar dropdown also offers — the two controls stay
+  // consistent no matter which one the shopper uses.
+  const radiusIndex = Math.max(0, RADIUS_OPTIONS.indexOf(maxRadiusKm));
 
-
-  const filteredProducts = MOCK_PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory = selectedCategory === ALL_CATEGORIES || product.category === selectedCategory;
-    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.sellerName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDistance = product.distanceKm <= maxRadiusKm;
-    const matchesBargain = !onlyBargainable || product.bargainable;
+    const matchesSearch =
+      (product.title || product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.sellerName || '').toLowerCase().includes(searchQuery.toLowerCase());
+    // The API already radius-filters server side; this only keeps the chip in
+    // step with it (an unmeasurable distance must not hide a listing).
+    const matchesDistance = Number(product.distanceKm ?? 0) <= maxRadiusKm;
+    const matchesBargain = !onlyBargainable || product.bargainable || product.isNegotiable;
     const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
-    const matchesRating = product.rating >= minRating;
+    const matchesRating = (Number(product.rating) || 0) >= minRating;
     return matchesCategory && matchesSearch && matchesDistance && matchesBargain && matchesPrice && matchesRating;
   });
 
-  // Apply sorting based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOption) {
       case 'priceLowHigh':
@@ -76,26 +74,33 @@ export const ProductListing = () => {
       case 'priceHighLow':
         return b.price - a.price;
       case 'rating':
-        return b.rating - a.rating;
+        return (b.rating || 0) - (a.rating || 0);
       default:
         return 0;
     }
   });
-  
-
-  
 
   return (
     <div className="product-listing-page container mt-6">
-      <div className="listing-header mb-6">
-        <h1 className="text-2xl font-bold">Local Furniture Catalog</h1>
-        <p className="text-muted text-sm">
-          Browse sofas, wardrobes, dining sets and more from neighborhood furniture stores within{' '}
-          {formatDistance(maxRadiusKm)} radius
-        </p>
+      <div className="listing-header mb-6 flex justify-between items-end flex-wrap gap-4">
+        <div>
+          <h1>Local Furniture Catalog</h1>
+          <p className="text-muted text-sm">
+            Browse sofas, wardrobes, dining sets and more from neighborhood furniture stores within{' '}
+            {formatDistance(maxRadiusKm)} radius
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refetch}
+          className="text-xs text-muted hover:text-accent flex items-center gap-1 cursor-pointer"
+          title="Refresh products from backend"
+        >
+          <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+          <span>Refresh Live</span>
+        </button>
       </div>
 
-      {/* Collapsible filters for tablet/mobile (hidden on desktop) */}
       <button
         type="button"
         className="mobile-filter-toggle"
@@ -107,11 +112,10 @@ export const ProductListing = () => {
       </button>
 
       <div className="listing-layout">
-        {/* Sidebar Filters */}
         <aside className={`listing-sidebar ${filtersOpen ? 'filters-open' : ''}`}>
           <Card padding="md" className="filter-card">
             <div className="flex items-center justify-between mb-4">
-              <span className="font-bold text-sm flex items-center gap-1">
+              <span className="font-semibold text-sm flex items-center gap-1">
                 <SlidersHorizontal size={14} /> Filter Products
               </span>
               <button
@@ -131,28 +135,29 @@ export const ProductListing = () => {
               </button>
             </div>
 
-            {/* Distance Slider Filter */}
             <div className="filter-group mb-5">
               <div className="flex justify-between items-center mb-1 text-xs font-semibold">
                 <span>Discovery Radius</span>
                 <span className="text-accent">{formatDistance(maxRadiusKm)} max</span>
               </div>
               <input
+                id="listing-radius-slider"
+                data-testid="listing-radius-slider"
                 type="range"
-                min="1"
-                max="20"
-                value={maxRadiusKm}
-                onChange={(e) => setMaxRadiusKm(Number(e.target.value))}
+                min={0}
+                max={RADIUS_OPTIONS.length - 1}
+                step={1}
+                value={radiusIndex}
+                onChange={(e) => setMaxRadiusKm(RADIUS_OPTIONS[Number(e.target.value)])}
                 className="radius-slider"
                 aria-label="Filter radius in kilometers"
               />
               <div className="flex justify-between text-xs text-muted mt-1">
-                <span>1 km (walking)</span>
-                <span>20 km</span>
+                <span>{RADIUS_OPTIONS[0]} km</span>
+                <span>{RADIUS_OPTIONS[RADIUS_OPTIONS.length - 1]} km</span>
               </div>
             </div>
 
-            {/* Price Range Filter */}
             <div className="filter-group mb-5">
               <div className="flex justify-between items-center mb-1 text-xs font-semibold">
                 <span>Price Range (₹)</span>
@@ -178,7 +183,6 @@ export const ProductListing = () => {
               </div>
             </div>
 
-            {/* Seller Rating Filter */}
             <div className="filter-group mb-5">
               <span className="text-xs font-semibold uppercase text-muted block mb-2">Seller Rating</span>
               <select
@@ -194,7 +198,6 @@ export const ProductListing = () => {
               </select>
             </div>
 
-            {/* Categories */}
             <div className="filter-group mb-5">
               <span className="text-xs font-semibold uppercase text-muted block mb-2">Category</span>
               <div className="category-pill-list flex flex-col gap-1">
@@ -207,14 +210,13 @@ export const ProductListing = () => {
                   >
                     <span>{cat}</span>
                     <span className="count-badge">
-                      {cat === ALL_CATEGORIES ? MOCK_PRODUCTS.length : MOCK_PRODUCTS.filter(p => p.category === cat).length}
+                      {cat === ALL_CATEGORIES ? products.length : products.filter((p) => p.category === cat).length}
                     </span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Smart Bargaining Toggle */}
             <div className="filter-group">
               <label className="bargain-toggle-label flex items-center gap-2 text-sm cursor-pointer">
                 <input
@@ -230,7 +232,6 @@ export const ProductListing = () => {
           </Card>
         </aside>
 
-        {/* Main Products Grid Area */}
         <div className="listing-main">
           <div className="search-and-sort-bar">
             <div className="search-input-wrap">
@@ -242,7 +243,6 @@ export const ProductListing = () => {
                 aria-label="Filter products"
               />
             </div>
-            {/* Sorting Dropdown */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted">Sort:</span>
               <select
@@ -252,32 +252,54 @@ export const ProductListing = () => {
                 aria-label="Sort products"
               >
                 <option value="relevance">Relevance</option>
-                <option value="priceLowHigh">Price: Low → High</option>
-                <option value="priceHighLow">Price: High → Low</option>
-                <option value="rating">Rating</option>
+                <option value="priceLowHigh">Price: Low to High</option>
+                <option value="priceHighLow">Price: High to Low</option>
+                <option value="rating">Top Rated</option>
               </select>
             </div>
-            <span className="text-xs text-muted whitespace-nowrap">
-              Showing <strong>{sortedProducts.length}</strong> items
-            </span>
           </div>
 
-          {filteredProducts.length > 0 ? (
-            <div className="product-grid">
-              {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          {error && !loading && (
+            <p className="text-sm text-danger mb-4" role="alert">{error}</p>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader size="lg" message="Discovering nearby furniture..." />
             </div>
-          ) : (
+          ) : sortedProducts.length === 0 ? (
             <EmptyState
-              title="No furniture found in this range"
-              message={`Try expanding your discovery radius beyond ${formatDistance(maxRadiusKm)} or clearing category filters.`}
+              title="No furniture items found"
+              message="Try broadening your discovery radius or clearing your active filters."
               action={
-                <Button variant="outline" size="sm" onClick={() => setMaxRadiusKm(20)}>
-                  Expand radius to 20 km
-                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(ALL_CATEGORIES);
+                    setSearchQuery('');
+                    setOnlyBargainable(false);
+                    setMinPrice(priceMin);
+                    setMaxPrice(priceMax);
+                    setMinRating(0);
+                  }}
+                  className="btn btn-outline btn-md"
+                >
+                  Clear All Filters
+                </button>
               }
             />
+          ) : (
+            <>
+              {/* Section heading for the grid: keeps the document outline at
+                  h1 → h2 → h3 (card titles are h3) without adding visible
+                  chrome next to the page header. */}
+              <h2 className="sr-only">Products in this view</h2>
+              <div className="product-grid">
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product.id || product._id} product={product} />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
