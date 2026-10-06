@@ -17,12 +17,19 @@ import {
   filterNegotiationsForSeller,
   filterNegotiationsForCustomer,
   isAwaitingSeller,
-  isAwaitingCustomer
+  isAwaitingCustomer,
+  CITY_COORDINATES,
+  RADIUS_OPTIONS
 } from '../../context/AuthContext';
 import './Navbar.css';
 
 export const Navbar = () => {
-  const { currentRole, isAuthenticated, logout, userProfile, userLocation, maxRadiusKm, setMaxRadiusKm, cartItems, negotiations, currentUser } = useAuth();
+  const { 
+    currentRole, isAuthenticated, logout, userProfile, 
+    userLocation, setUserLocation, setUserCoordinates, requestGeolocation,
+    maxRadiusKm, setMaxRadiusKm, 
+    cartItems, negotiations, currentUser 
+  } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -94,20 +101,56 @@ export const Navbar = () => {
             <MapPin size={16} className="text-accent flex-shrink-0" />
             <div className="location-text-group">
               <span className="location-title">Your Area</span>
-              <span className="location-val truncate" title={userLocation}>{userLocation}</span>
+              <select
+                className="location-val-dropdown"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'inherit',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  maxWidth: '150px'
+                }}
+                value={userLocation}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'detect') {
+                    requestGeolocation();
+                  } else if (CITY_COORDINATES[val]) {
+                    setUserLocation(val);
+                    setUserCoordinates(CITY_COORDINATES[val]);
+                  } else {
+                    setUserLocation(val);
+                  }
+                }}
+                title={userLocation}
+              >
+                <option value="detect">Detect My Location</option>
+                {!CITY_COORDINATES[userLocation] && userLocation !== 'detect' && (
+                  <option value={userLocation}>{userLocation}</option>
+                )}
+                <option disabled>──────────</option>
+                {Object.keys(CITY_COORDINATES).map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
             </div>
             <div className="radius-selector flex items-center gap-1">
               <span className="text-xs text-muted">Radius:</span>
               <select
+                id="navbar-radius-dropdown"
+                data-testid="navbar-radius-dropdown"
                 value={maxRadiusKm}
                 onChange={(e) => setMaxRadiusKm(Number(e.target.value))}
                 className="radius-dropdown"
                 aria-label="Select local discovery radius"
               >
-                <option value={2}>2 km</option>
-                <option value={5}>5 km</option>
-                <option value={10}>10 km</option>
-                <option value={20}>20 km</option>
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r} value={r}>{r} km</option>
+                ))}
               </select>
             </div>
           </div>
@@ -259,6 +302,7 @@ export const Navbar = () => {
                           onClick={() => setDropdownOpen(false)}
                         >
                           <ShieldCheck size={15} /> Price Negotiations
+                          {sellerOfferCount > 0 ? ` (${sellerOfferCount})` : ''}
                         </Link>
                       </>
                     )}

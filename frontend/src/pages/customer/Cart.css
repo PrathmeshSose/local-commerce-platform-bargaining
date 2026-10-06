@@ -15,9 +15,35 @@
 
 .cart-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  /* minmax(0, …) on both tracks: a plain `1fr` has an `auto` minimum, so a
+     wide child could force the row past the container and push the summary
+     column off the right edge of the viewport. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  /* Three cells instead of two: the delivery form lives under the item list in
+     the wide column, and the summary spans both rows beside it. Squeezed into
+     the 360px rail the form made that column ~676px tall against a ~240px item
+     list, so the row height came from the rail and left ~436px x 800px of empty
+     grid area under the items (the blank space seen on the checkout page). */
+  grid-template-areas:
+    "items    summary"
+    "checkout summary";
   gap: 2rem;
   align-items: start;
+}
+
+.cart-items-column {
+  grid-area: items;
+  min-width: 0;
+}
+
+.cart-summary-column {
+  grid-area: summary;
+  min-width: 0;
+}
+
+.cart-checkout-column {
+  grid-area: checkout;
+  min-width: 0;
 }
 
 /* ---------- Items column ---------- */
@@ -150,6 +176,7 @@
 
 .summary-card {
   width: 100%;
+  min-width: 0;
 }
 
 .summary-title {
@@ -232,9 +259,22 @@
   margin-bottom: 0.5rem;
 }
 
+/* The summary column is a fixed 360px, so this form's inner width is only
+   ~288px. Two side-by-side fields left ~138px each — far too narrow for a
+   street address — and because the inputs had no width they kept their
+   intrinsic browser width (~230px), spilled out of the grid, and were then
+   clipped by `.card { overflow: hidden }`. One column + width:100% inputs
+   keeps every field inside the card at every breakpoint. */
 .checkout-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+/* City and PIN are short values, so they can safely share a row. */
+.checkout-field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.75rem;
 }
 
@@ -247,6 +287,8 @@
 }
 
 .checkout-input {
+  width: 100%;
+  min-width: 0;
   font-size: 0.8125rem;
 }
 
@@ -261,6 +303,15 @@
   margin-top: 0.75rem;
 }
 
+/* `.btn` is `white-space: nowrap`, which made "Complete Checkout • ₹…" wider
+   than the 288px card and clipped it. Let this one label wrap. */
+.checkout-submit-btn {
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+
 .cart-summary-footnote {
   margin-top: 0.5rem;
   text-align: center;
@@ -268,8 +319,11 @@
 
 /* ---------- Order confirmed ---------- */
 
+/* Centred and width-capped so it reads as a confirmation panel rather than a
+   full-bleed banner; inside the narrow summary card the cap never binds. */
 .order-confirmed-block {
-  margin-top: 1rem;
+  max-width: 460px;
+  margin: 1rem auto 0;
   padding: 1rem;
   text-align: center;
 }
@@ -294,11 +348,17 @@
 
 @media (max-width: 860px) {
   .cart-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    /* Single column keeps the original mobile reading order: item list, then
+       the order summary, then the delivery form. */
+    grid-template-areas:
+      "items"
+      "summary"
+      "checkout";
   }
 
-  .checkout-grid {
-    grid-template-columns: 1fr;
+  .checkout-field-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Bed photo placeholder">
+  <rect width="600" height="600" fill="#f0fdf4"/>
+  <g stroke="#153e5c" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="118" y="196" width="58" height="212" rx="18" fill="#d1fae5"/>
+    <rect x="168" y="300" width="316" height="96" rx="16" fill="#ecfdf5"/>
+    <path d="M186 396v40M466 396v40"/>
+    <rect x="196" y="264" width="106" height="60" rx="14" fill="#ffffff"/>
+    <rect x="326" y="264" width="106" height="60" rx="14" fill="#ffedd5" stroke="#f97316"/>
+    <path d="M176 348h308"/>
+  </g>
+</svg>

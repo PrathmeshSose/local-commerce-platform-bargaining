@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Furniture photo placeholder">
+  <rect width="600" height="600" fill="#f0fdf4"/>
+  <g stroke="#153e5c" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="165" y="205" width="270" height="185" rx="26" fill="#ecfdf5"/>
+    <rect x="130" y="300" width="46" height="120" rx="20" fill="#d1fae5"/>
+    <rect x="424" y="300" width="46" height="120" rx="20" fill="#d1fae5"/>
+    <rect x="176" y="330" width="248" height="70" rx="16" fill="#d1fae5"/>
+    <path d="M176 420v34M424 420v34"/>
+    <rect x="252" y="238" width="96" height="62" rx="14" fill="#ffedd5" stroke="#f97316"/>
+  </g>
+</svg>

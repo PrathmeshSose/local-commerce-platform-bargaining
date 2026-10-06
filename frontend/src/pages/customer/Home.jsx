@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { ProductCard } from '../../components/common/ProductCard';
-import { Card } from '../../components/common/Card';
+
 import { Badge } from '../../components/common/Badge';
-import { MOCK_PRODUCTS, MOCK_SELLERS, MOCK_CATEGORIES } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
+import { useProducts } from '../../hooks/useProducts';
 import { formatDistance } from '../../utils/formatters';
 import {
   MapPin,
@@ -13,16 +13,16 @@ import {
   Store,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
-  Phone
+  ShieldCheck
 } from 'lucide-react';
 import './Home.css';
 
 export const Home = () => {
   const { maxRadiusKm, userLocation } = useAuth();
+  const { products } = useProducts();
 
   // Filter products based on active radius setting
-  const nearbyProducts = MOCK_PRODUCTS.filter((p) => p.distanceKm <= maxRadiusKm);
+  const nearbyProducts = products.filter((p) => Number(p.distanceKm ?? 0) <= maxRadiusKm).slice(0, 8);
 
   return (
     <div className="home-page">
@@ -63,7 +63,7 @@ export const Home = () => {
                   <MapPin size={20} className="text-accent" />
                 </div>
                 <div>
-                  <h5 className="font-semibold text-sm">Hyperlocal Radius</h5>
+                  <h2 className="font-semibold text-sm">Hyperlocal Radius</h2>
                   <p className="text-xs text-muted">Shop within 1 to 20 km</p>
                 </div>
               </div>
@@ -73,7 +73,7 @@ export const Home = () => {
                   <Tag size={20} className="text-bargain" />
                 </div>
                 <div>
-                  <h5 className="font-semibold text-sm">Smart Bargaining</h5>
+                  <h2 className="font-semibold text-sm">Smart Bargaining</h2>
                   <p className="text-xs text-muted">Counter-offer in INR directly</p>
                 </div>
               </div>
@@ -83,7 +83,7 @@ export const Home = () => {
                   <ShieldCheck size={20} style={{ color: 'var(--secondary)' }} />
                 </div>
                 <div>
-                  <h5 className="font-semibold text-sm">2% Seller Commission</h5>
+                  <h2 className="font-semibold text-sm">2% Seller Commission</h2>
                   <p className="text-xs text-muted">Paid by seller upon sale</p>
                 </div>
               </div>
@@ -94,83 +94,24 @@ export const Home = () => {
 
       {/* Nearby Products Section */}
       <section className="section-featured container mt-8">
-        <div className="section-header flex items-center justify-between mb-4">
+        <div className="section-header flex justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="section-title">Furniture Near You</h2>
-              <Badge variant="success" size="sm">
-                Within {formatDistance(maxRadiusKm)}
-              </Badge>
+              <Badge variant="accent" size="sm">{nearbyProducts.length} Available</Badge>
             </div>
-            <p className="text-sm text-muted">Handpicked pieces from verified neighborhood furniture stores</p>
+            <p className="text-xs text-muted">
+              Hand-picked designs from shops within {formatDistance(maxRadiusKm)} of {userLocation}
+            </p>
           </div>
-          <Link to="/products" className="text-sm font-semibold text-accent flex items-center gap-1">
-            View all ({MOCK_PRODUCTS.length}) <ArrowRight size={14} />
+          <Link to="/products" className="text-xs font-semibold text-accent hover:underline flex items-center gap-1">
+            View All Catalog <ArrowRight size={12} />
           </Link>
-        </div>
-
-        {/* Shop by furniture room/category */}
-        <div className="home-category-chips mb-4">
-          {MOCK_CATEGORIES.slice(1).map((cat) => (
-            <Link
-              key={cat}
-              to={`/products?category=${encodeURIComponent(cat)}`}
-              className="category-chip"
-            >
-              {cat}
-            </Link>
-          ))}
         </div>
 
         <div className="home-products-grid">
           {nearbyProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Verified Local Sellers */}
-      <section className="section-sellers container mt-12">
-        <div className="section-header flex items-center justify-between mb-4">
-          <div>
-            <h2 className="section-title">Featured Neighborhood Stores</h2>
-            <p className="text-sm text-muted">Verified local furniture shops with flexible bargaining and prompt store pickup</p>
-          </div>
-        </div>
-
-        <div className="sellers-grid">
-          {MOCK_SELLERS.map((seller) => (
-            <Card key={seller.id} hoverEffect className="seller-card">
-              <div className="seller-banner" style={{ backgroundImage: `url(${seller.banner})` }}>
-                <img src={seller.avatar} alt={seller.name} className="seller-avatar" />
-              </div>
-              <div className="seller-body">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-bold text-base">{seller.name}</h4>
-                    <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
-                      <MapPin size={12} className="flex-shrink-0" /> {seller.shortLocation || seller.location} ({formatDistance(seller.distanceKm)})
-                    </p>
-                  </div>
-                  <Badge variant="success" size="sm">Verified</Badge>
-                </div>
-
-                <div className="seller-meta-row flex items-center justify-between mt-3 text-xs text-muted">
-                  <span>Rating: <strong>{seller.rating} ★</strong> ({seller.reviewsCount})</span>
-                  <span>Bargain: <strong>{seller.bargainTolerance}</strong></span>
-                </div>
-
-                <div className="text-xs text-muted flex items-center gap-1 mt-2">
-                  <Phone size={11} /> <span>{seller.phone}</span>
-                </div>
-
-                <Link to={`/products?seller=${seller.id}`}>
-                  <Button variant="outline" size="sm" className="w-full mt-4">
-                    Browse Store Catalog
-                  </Button>
-                </Link>
-              </div>
-            </Card>
+            <ProductCard key={product.id || product._id} product={product} />
           ))}
         </div>
       </section>

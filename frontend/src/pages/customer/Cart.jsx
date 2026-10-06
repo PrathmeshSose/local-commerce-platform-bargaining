@@ -4,21 +4,21 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/Loader';
-import { Trash2, Store, ShieldCheck, Plus, Minus } from 'lucide-react';
+import { Trash2, Store, ShieldCheck, Plus, Minus, Loader2 } from 'lucide-react';
 import { formatINR, formatDistance } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 import './Cart.css';
 
 export const Cart = () => {
-  // Real cart state lives in AuthContext (shared with Product Details / Bargaining)
   const { cartItems, updateCartQuantity, removeCartItem } = useAuth();
 
-  // Customer purchase subtotal uses the effective unit price
-  // (negotiated price when applicable, otherwise the listed price).
-  // The seller-side 2% platform commission is NEVER added here.
+  // Set just before checkout clears the cart. `placeOrder` calls `clearCart()`,
+  // which unmounts the form below, so the confirmation has to live here or it
+  // would never be rendered and the user would only ever see "bag is empty".
+  const [completedOrder, setCompletedOrder] = useState(null);
+
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  // Savings are counted only for items actually won through bargaining
   const totalSavings = cartItems.reduce((acc, item) =>
     item.isNegotiated && item.originalPrice && item.originalPrice > item.price
       ? acc + (item.originalPrice - item.price) * item.quantity
@@ -26,7 +26,6 @@ export const Cart = () => {
     0
   );
 
-  // Group items by their neighborhood seller (no hard-coded merchant/product)
   const sellerGroups = cartItems.reduce((acc, item) => {
     const key = item.seller || 'Local Merchant';
     if (!acc[key]) acc[key] = [];
@@ -41,17 +40,30 @@ export const Cart = () => {
         <p className="cart-page-subtitle text-sm text-muted">
           Items organized by neighborhood seller for pickup or delivery
         </p>
-        <EmptyState
-          title="Your bag is empty"
-          message="Browse nearby neighborhood deals and use Smart Bargaining to lock a fair price."
-          action={
-            <Link to="/products">
-              <Button variant="primary" size="md">
-                Explore Local Deals
-              </Button>
+        {completedOrder ? (
+          <div className="order-confirmed-block surface-card">
+            <h2 className="order-confirmed-title">Order Confirmed!</h2>
+            <p className="order-confirmed-text text-xs text-muted">
+              Your order of {formatINR(completedOrder.amount)} has been verified and registered for
+              pickup/delivery from {completedOrder.storeName}.
+            </p>
+            <Link to="/orders" className="btn btn-primary btn-sm order-confirmed-link">
+              View in My Orders
             </Link>
-          }
-        />
+          </div>
+        ) : (
+          <EmptyState
+            title="Your bag is empty"
+            message="Browse nearby neighborhood deals and use Smart Bargaining to lock a fair price."
+            action={
+              <Link to="/products">
+                <Button variant="primary" size="md">
+                  Explore Local Deals
+                </Button>
+              </Link>
+            }
+          />
+        )}
       </div>
     );
   }
@@ -65,7 +77,6 @@ export const Cart = () => {
 
       <div className="cart-layout">
         <div className="cart-items-column">
-          {/* Merchant Grouping (one card per seller) */}
           {Object.entries(sellerGroups).map(([sellerName, items]) => (
             <Card padding="md" className="merchant-cart-group" key={sellerName}>
               <div className="cart-group-header">
@@ -73,7 +84,9 @@ export const Cart = () => {
                   <Store size={18} className="text-accent" />
                   <span>{sellerName}</span>
                   <span className="cart-group-meta">
-                    ({formatDistance(items[0]?.distanceKm ?? 1.0)} away)
+                    {items[0]?.distanceKm != null
+                      ? `(${formatDistance(items[0].distanceKm)} away)`
+                      : ''}
                   </span>
                 </div>
                 <Badge variant="success" size="sm">Store Pickup Ready</Badge>
@@ -85,7 +98,7 @@ export const Cart = () => {
                     <div className="cart-item-info">
                       <img src={item.image} alt={item.title} className="cart-item-thumb" />
                       <div className="cart-item-details">
-                        <h4 className="cart-item-title text-sm">{item.title}</h4>
+                        <h2 className="cart-item-title text-sm">{item.title}</h2>
                         <div className="cart-item-price-row">
                           <span className="cart-item-price text-sm font-bold">{formatINR(item.price)}</span>
                           {item.originalPrice && item.originalPrice > item.price && (
@@ -139,7 +152,7 @@ export const Cart = () => {
         {/* Order Summary */}
         <div className="cart-summary-column">
           <Card padding="md" className="summary-card">
-            <h3 className="summary-title text-base">Order Summary</h3>
+            <h2 className="summary-title text-base">Order Summary</h2>
 
             <div className="summary-rows">
               <div className="summary-row">
@@ -163,7 +176,6 @@ export const Cart = () => {
               </div>
             </div>
 
-            {/* Local Market Assurance */}
             <div className="revenue-transparency-box">
               <ShieldCheck size={18} className="revenue-transparency-icon" />
               <div className="revenue-transparency-text">
@@ -172,32 +184,45 @@ export const Cart = () => {
               </div>
             </div>
 
-            {/* Checkout Form */}
-            <CheckoutForm cartItems={cartItems} subtotal={subtotal} />
             <p className="cart-summary-footnote text-xs text-muted">
               Pay via UPI, Card, or Cash directly at the store upon verification.
             </p>
           </Card>
+        </div>
+
+        {/* Delivery / Pickup form — its own grid cell BELOW the item list, in
+            the wide left column. Nested in the fixed 360px summary rail it made
+            that column ~436px taller than the item list, so the grid row grew to
+            the rail's height and the whole area under the items stayed blank. */}
+        <div className="cart-checkout-column">
+          <CheckoutForm
+            cartItems={cartItems}
+            subtotal={subtotal}
+            onCompleted={setCompletedOrder}
+          />
         </div>
       </div>
     </div>
   );
 };
 
-// Checkout form component for addressing Indian delivery details
-const CheckoutForm = ({ cartItems, subtotal }) => {
+const CheckoutForm = ({ cartItems, subtotal, onCompleted }) => {
+  const { placeOrder, currentUser } = useAuth();
+  // Defaults only where they cannot be wrong (the signed-in buyer's own name,
+  // the marketplace's Indore pickup city/state). Address, PIN and phone start
+  // empty: pre-filled fake delivery details would be stored on the customer's
+  // behalf if they never noticed them.
   const [formData, setFormData] = useState({
-    name: 'Aarav Mehta',
-    address: '14, Snehnagar, Sapna Sangeeta Road',
+    name: currentUser?.name || '',
+    address: '',
     city: 'Indore',
     state: 'Madhya Pradesh',
-    pin: '452001'
+    pin: '',
+    phone: ''
   });
   const [errors, setErrors] = useState({});
-  const [orderPlaced, setOrderPlaced] = useState(false);
-
-  // Shared order state lives in AuthContext (same store /orders reads)
-  const { placeOrder } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const storeName = cartItems[0]?.seller || 'your neighborhood store';
 
@@ -207,103 +232,165 @@ const CheckoutForm = ({ cartItems, subtotal }) => {
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
+  // Indian mobile: 10 digits starting 6-9, optionally typed with a +91/91
+  // prefix or spaces/dashes. Everything else is refused before the order runs.
+  const normalizePhone = (raw) => String(raw || '').replace(/[\s-]/g, '').replace(/^\+?91/, '');
+  const isValidPhone = (raw) => /^[6-9][0-9]{9}$/.test(normalizePhone(raw));
+
   const validate = () => {
     const newErrors = {};
-    if (!formData.name) newErrors.name = 'Name required';
-    if (!formData.address) newErrors.address = 'Address required';
-    if (!formData.city) newErrors.city = 'City required';
-    if (!formData.state) newErrors.state = 'State required';
+    if (!formData.name.trim()) newErrors.name = 'Name required';
+    if (!formData.address.trim()) newErrors.address = 'Address required';
+    if (!formData.city.trim()) newErrors.city = 'City required';
+    if (!formData.state.trim()) newErrors.state = 'State required';
     if (!/^[0-9]{6}$/.test(formData.pin)) newErrors.pin = 'Enter a valid 6-digit PIN';
+    if (!isValidPhone(formData.phone)) newErrors.phone = 'Enter a valid 10-digit mobile number';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    // Store the completed checkout in shared AuthContext order state
-    // (effective/negotiated prices; customer total excludes seller 2%).
-    // Buyer details are attached so the seller's order card shows who bought.
-    placeOrder(cartItems, formData);
-    setOrderPlaced(true);
+    setIsSubmitting(true);
+    setSubmitError('');
+    // Record the completed order BEFORE `placeOrder` runs: it ends with
+    // `clearCart()`, which unmounts this form, so setting state afterwards
+    // would never render and the user would just see an empty bag.
+    onCompleted?.({ amount: subtotal, storeName });
+    try {
+      await placeOrder(cartItems);
+    } catch (err) {
+      // The backend refused (or the listing is not server-connected). Undo the
+      // optimistic confirmation and keep the bag so the real reason is visible.
+      onCompleted?.(null);
+      setSubmitError(err.message || 'Your order could not be placed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (orderPlaced) {
-    return (
-      <div className="order-confirmed-block surface-card">
-        <h4 className="order-confirmed-title">Order Confirmed!</h4>
-        <p className="order-confirmed-text text-xs text-muted">
-          Your order of {formatINR(subtotal)} is ready for pickup/delivery from {storeName}.
-        </p>
-        <a href="/orders" className="btn btn-primary btn-sm order-confirmed-link">
-          View in My Orders
-        </a>
-      </div>
-    );
-  }
+  // Placeholder-as-label inputs still need an accessible name and a wired-up
+  // error message for screen readers and keyboard users.
+  const fieldA11y = (name, label) => ({
+    'aria-label': label,
+    'aria-invalid': errors[name] ? true : undefined,
+    'aria-describedby': errors[name] ? `${name}-checkout-error` : undefined
+  });
 
   return (
-    <form className="checkout-form surface-card" onSubmit={handleSubmit}>
-      <h4 className="checkout-form-title text-sm">Delivery / Pickup Details</h4>
+    <form className="checkout-form surface-card" onSubmit={handleSubmit} noValidate>
+      <h3 className="checkout-form-title text-sm">Delivery / Pickup Details</h3>
       <div className="checkout-grid">
         <div className="checkout-field">
           <input
+            type="text"
             name="name"
             placeholder="Full Name"
-            className="form-input checkout-input"
+            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
-            aria-label="Full Name"
+            className={`checkout-input ${errors.name ? 'input-error' : ''}`}
+            {...fieldA11y('name', 'Full name')}
           />
-          {errors.name && <p className="checkout-field-error">{errors.name}</p>}
+          {errors.name && <span className="checkout-error-msg" id="name-checkout-error">{errors.name}</span>}
         </div>
+
         <div className="checkout-field">
           <input
-            name="pin"
-            placeholder="PIN (6 digits)"
-            className="form-input checkout-input"
-            value={formData.pin}
+            type="tel"
+            name="phone"
+            placeholder="Mobile Number (10 digits)"
+            autoComplete="tel"
+            inputMode="numeric"
+            maxLength={14}
+            value={formData.phone}
             onChange={handleChange}
-            aria-label="PIN Code"
+            className={`checkout-input ${errors.phone ? 'input-error' : ''}`}
+            {...fieldA11y('phone', 'Mobile number')}
           />
-          {errors.pin && <p className="checkout-field-error">{errors.pin}</p>}
+          {errors.phone && <span className="checkout-error-msg" id="phone-checkout-error">{errors.phone}</span>}
         </div>
+
         <div className="checkout-field">
           <input
-            name="city"
-            placeholder="City"
-            className="form-input checkout-input"
-            value={formData.city}
-            onChange={handleChange}
-            aria-label="City"
-          />
-          {errors.city && <p className="checkout-field-error">{errors.city}</p>}
-        </div>
-        <div className="checkout-field">
-          <input
-            name="state"
-            placeholder="State"
-            className="form-input checkout-input"
-            value={formData.state}
-            onChange={handleChange}
-            aria-label="State"
-          />
-          {errors.state && <p className="checkout-field-error">{errors.state}</p>}
-        </div>
-        <div className="checkout-field checkout-field-full">
-          <input
+            type="text"
             name="address"
-            placeholder="Address Line"
-            className="form-input checkout-input"
+            placeholder="Street Address / Locality"
+            autoComplete="street-address"
             value={formData.address}
             onChange={handleChange}
-            aria-label="Address Line"
+            className={`checkout-input ${errors.address ? 'input-error' : ''}`}
+            {...fieldA11y('address', 'Street address and locality')}
           />
-          {errors.address && <p className="checkout-field-error">{errors.address}</p>}
+          {errors.address && <span className="checkout-error-msg" id="address-checkout-error">{errors.address}</span>}
+        </div>
+
+        <div className="checkout-field-row">
+          <div className="checkout-field">
+            <input
+              type="text"
+              name="city"
+              placeholder="City"
+              autoComplete="address-level2"
+              value={formData.city}
+              onChange={handleChange}
+              className={`checkout-input ${errors.city ? 'input-error' : ''}`}
+              {...fieldA11y('city', 'City')}
+            />
+            {errors.city && <span className="checkout-error-msg" id="city-checkout-error">{errors.city}</span>}
+          </div>
+
+          <div className="checkout-field">
+            <input
+              type="text"
+              name="state"
+              placeholder="State"
+              autoComplete="address-level1"
+              value={formData.state}
+              onChange={handleChange}
+              className={`checkout-input ${errors.state ? 'input-error' : ''}`}
+              {...fieldA11y('state', 'State')}
+            />
+            {errors.state && <span className="checkout-error-msg" id="state-checkout-error">{errors.state}</span>}
+          </div>
+
+          <div className="checkout-field">
+            <input
+              type="text"
+              name="pin"
+              placeholder="PIN Code"
+              autoComplete="postal-code"
+              inputMode="numeric"
+              maxLength={6}
+              value={formData.pin}
+              onChange={handleChange}
+              className={`checkout-input ${errors.pin ? 'input-error' : ''}`}
+              {...fieldA11y('pin', 'Six-digit PIN code')}
+            />
+            {errors.pin && <span className="checkout-error-msg" id="pin-checkout-error">{errors.pin}</span>}
+          </div>
         </div>
       </div>
-      <button type="submit" className="btn btn-primary btn-md checkout-submit">
-        Place Order ({formatINR(subtotal)})
+
+      {submitError && (
+        <p className="checkout-error-msg" role="alert" style={{ display: 'block', marginTop: '0.75rem' }}>
+          {submitError}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        className="btn btn-primary btn-lg checkout-submit-btn w-full mt-3"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 size={16} className="animate-spin" /> Submitting Order...
+          </span>
+        ) : (
+          `Complete Checkout • ${formatINR(subtotal)}`
+        )}
       </button>
     </form>
   );

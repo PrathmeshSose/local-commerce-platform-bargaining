@@ -8,19 +8,22 @@
   white-space: nowrap;
 }
 
+/* Badge sizes share the type scale's two caption steps (12px / 14px) instead
+   of three one-off values (0.7 / 0.775 / 0.85rem). Tiers stay visually
+   distinct through padding, which is what actually reads at these sizes. */
 .badge-sm {
   padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .badge-md {
   padding: 0.3rem 0.65rem;
-  font-size: 0.775rem;
+  font-size: 0.75rem;
 }
 
 .badge-lg {
   padding: 0.4rem 0.85rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .badge-default {

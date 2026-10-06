@@ -35,8 +35,12 @@ export const formatDateIN = (dateInput) => {
 };
 
 /**
- * Format distance in kilometers (e.g. "1.2 km")
+ * Format distance in kilometers (e.g. "1.2 km").
+ * A listing without a resolvable position has no distance to show — say so
+ * instead of printing "NaN km".
  */
 export const formatDistance = (km) => {
-  return `${Number(km).toFixed(1)} km`;
+  const value = Number(km);
+  if (!Number.isFinite(value)) return 'Distance unavailable';
+  return `${value.toFixed(1)} km`;
 };

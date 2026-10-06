@@ -23,7 +23,7 @@ export const Footer = () => {
           </div>
 
           <div className="footer-links-col">
-            <h5 className="footer-title">Customer</h5>
+            <h2 className="footer-title">Customer</h2>
             <ul className="footer-list">
               <li><a href="/products">Local Discovery</a></li>
               <li><a href="/orders">My Orders</a></li>
@@ -33,7 +33,7 @@ export const Footer = () => {
           </div>
 
           <div className="footer-links-col">
-            <h5 className="footer-title">Seller Portal</h5>
+            <h2 className="footer-title">Seller Portal</h2>
             <ul className="footer-list">
               <li><a href="/seller">Dashboard</a></li>
               <li><a href="/seller/negotiations">Manage Offers</a></li>
@@ -43,7 +43,7 @@ export const Footer = () => {
           </div>
 
           <div className="footer-links-col">
-            <h5 className="footer-title">Platform &amp; Admin</h5>
+            <h2 className="footer-title">Platform &amp; Admin</h2>
             <ul className="footer-list">
               <li className="footer-admin-login-item">
                 <Link to="/admin/login" className="footer-admin-login-link">
